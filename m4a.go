@@ -5,6 +5,7 @@ import (
 )
 
 const moov = "moov"
+const mvhd = "mvhd"
 const udta = "udta"
 const meta = "meta"
 const ilst = "ilst"
@@ -22,6 +23,8 @@ func M4aTagsFromFile(path string) map[string]string {
   metaatom.skip(4)
   ilstatom := findatom(metaatom, ilst)
   readm4atags(ilstatom, m)
+  // Now, find the mvhd atom with the moov atom to get the duration.
+  getM4aDuration(moovatom, m)
   return m
 }
 
@@ -61,6 +64,15 @@ func readm4atags(bb *bytebuffer, m map[string]string) {
       bb.skip(size - 8)
     }
   }
+}
+
+func getM4aDuration(mbb *bytebuffer, m map[string]string) {
+  mbb.rewind()
+  mvhdatom := findatom(mbb, mvhd)
+  mvhdatom.skip(12)
+  timeUnit := float64(mvhdatom.read32BE())
+  units := float64(mvhdatom.read32BE())
+  setDuration(units / timeUnit, m)
 }
 
 func findatom(bb *bytebuffer, magic string) *bytebuffer {

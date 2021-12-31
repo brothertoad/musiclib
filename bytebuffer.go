@@ -36,6 +36,10 @@ func (bb *bytebuffer) remaining() int {
   return len(bb.b) - bb.n
 }
 
+func (bb *bytebuffer) rewind() {
+  bb.n = 0
+}
+
 func (bb *bytebuffer) readByte() uint32 {
   if (bb.n + 1) > len(bb.b) {
     panic("Attempt to read byte past end of byte buffer")

@@ -6,6 +6,7 @@ import (
 )
 
 const magic = 0x664c6143
+const streaminfotype byte = 0
 const commenttype byte = 4
 
 func FlacTagsFromFile(path string) map[string]string {
@@ -18,8 +19,10 @@ func FlacTagsFromFile(path string) map[string]string {
     blocktype, lastone, size := nextmetablock(bb)
     if blocktype == commenttype {
       cbb := bytebufferfromparent(bb, size)
-      getcomments(cbb, m)
-      return m
+      getFlacComments(cbb, m)
+    } else if blocktype == streaminfotype {
+      sibb := bytebufferfromparent(bb, size)
+      getFlacDuration(sibb, m)
     } else {
       bb.skip(size)
     }
@@ -30,7 +33,7 @@ func FlacTagsFromFile(path string) map[string]string {
   return m
 }
 
-func getcomments(cbb *bytebuffer, m map[string]string) {
+func getFlacComments(cbb *bytebuffer, m map[string]string) {
   vendorsize := cbb.read32LE()
   cbb.skip(vendorsize)
   num := cbb.read32LE()
@@ -40,6 +43,15 @@ func getcomments(cbb *bytebuffer, m map[string]string) {
     parts := strings.Split(comment, "=")
     m[parts[0]] = parts[1]
   }
+}
+
+func getFlacDuration(bb *bytebuffer, m map[string]string) {
+  bb.skip(10)
+  // We're going to do a shortcut, and assume the upper four bits of the
+  // total samples are zero.  This is good to over 750 minutes.
+  sampleSize := float64(bb.read32BE() >> 12)
+  numSamples := float64(bb.read32BE())
+  setDuration(numSamples / sampleSize, m)
 }
 
 func nextmetablock(bb *bytebuffer) (byte, bool, uint32) {
