@@ -1,16 +1,10 @@
 package tags
 
 import (
-  "os"
-  "io"
   "log"
   "strings"
-  "bytes"
   "encoding/binary"
-  "github.com/tcolgate/mp3"
 )
-
-var keysToSave = []string{ "TPE1", "TPE2", "TIT2", "TALB", "TSOA", "TSO2", "TRCK", "TPOS" }
 
 // version 1, layer 3 bit rates and sample rates
 var v1l3BitRates = []float64{ 0, 32000.0, 40000.0, 48000.0,
@@ -18,21 +12,6 @@ var v1l3BitRates = []float64{ 0, 32000.0, 40000.0, 48000.0,
   112000.0, 128000.0, 160000.0, 192000.0,
   224000.0, 256000.0, 320000.0 }
 var v1l3SampleRates = []float64{ 44100.0, 48000.0, 32000.0 }
-
-func xxxMp3TagsFromFile(path string) map[string]string {
-  _ = Mp3TagsFromFile(path)
-  bb := bytebufferfromfile(path)
-  if string(bb.read(3)) != "ID3" {
-    log.Fatalf("mp3 file %s does not have correct magic number\n", path)
-  }
-  // Read and ignore major version, minor version and flags
-  _ = bb.read(3)
-  totalSize := mp3GetTotalSize(bb)
-  tbb := bytebufferfromparent(bb, totalSize)
-  m := mp3BruteForce(tbb)
-  getMp3Duration(path, m)
-  return m
-}
 
 func Mp3TagsFromFile(path string) map[string]string {
   buffer := readFile(path)
@@ -114,30 +93,6 @@ func mp3ParseID3(buffer []byte, m map[string]string) int {
   return mp3GetID3Size(buffer[6:]) + headerSize
 }
 
-func mp3BruteForce(bb *bytebuffer) map[string]string {
-  // Search for tags desired.  If a tag is found, get its length, skip flags,
-  // check encoding, then get value.
-  m := make(map[string]string)
-  for _, key := range keysToSave {
-    n := bytes.Index(bb.b, []byte(key))
-    if n >= 0 {
-      size := binary.BigEndian.Uint32(bb.b[n+4:n+8])
-      m[key] = string(bb.b[n+11:n+int(size)+10])
-    }
-  }
-  return m
-}
-
-func mp3GetTotalSize(bb *bytebuffer) uint32 {
-  // Read four bytes, use the lower 7 bits of each one to form a 28-bit size.
-  var total uint32 = 0
-  for j := 0; j < 4; j++ {
-    total <<= 7
-    total += bb.readByte() & 0x7f
-  }
-  return total
-}
-
 func mp3GetID3Size(b []byte) int {
   // Read four bytes, use the lower 7 bits of each one to form a 28-bit size.
   var total int = 0
@@ -146,35 +101,4 @@ func mp3GetID3Size(b []byte) int {
     total += int(b[j]) & 0x7f
   }
   return total
-}
-
-func saveKey(x string) bool {
-    for _, n := range keysToSave {
-        if x == n {
-            return true
-        }
-    }
-    return false
-}
-
-func getMp3Duration(path string, m map[string]string) {
-  duration := 0.0
-  r, err := os.Open(path)
-  if err != nil {
-    return
-  }
-  d := mp3.NewDecoder(r)
-  var f mp3.Frame
-  skipped := 0
-  for {
-    if err := d.Decode(&f, &skipped); err != nil {
-      if err == io.EOF {
-        break
-      }
-      log.Fatalf("Error getting duration from %s: %s\n", path, err.Error())
-      break
-    }
-    duration = duration + f.Duration().Seconds()
-  }
-  setDuration(duration, m)
 }
