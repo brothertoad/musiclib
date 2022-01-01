@@ -24,28 +24,19 @@ func main() {
       defer file.Close()
       scanner := bufio.NewScanner(file)
       for scanner.Scan() {
-          dumpFile(scanner.Text())
+        dumpFile(scanner.Text())
       }
       if err := scanner.Err(); err != nil {
-          log.Fatal(err)
-      }    } else {
-      dumpFile(path)
+        log.Fatal(err)
+      }
+      } else {
+        dumpFile(path)
+      }
     }
-  }
 }
 
 func dumpFile(path string) {
-  var m map[string]string
-  if strings.HasSuffix(path, "flac") {
-    m = tags.FlacTagsFromFile(path)
-  } else if strings.HasSuffix(path, "m4a") {
-    m = tags.M4aTagsFromFile(path)
-  } else if strings.HasSuffix(path, "mp3") {
-    m = tags.Mp3TagsFromFile(path)
-  } else {
-    fmt.Printf("Unknown suffix on file %s\n", path)
-    return
-  }
+  m := tags.GetTagsFromFile(path)
   fmt.Printf("file %s has %d tags\n", path, len(m))
   for key, value := range m {
     fmt.Printf("%s: %s\n", key, value)
