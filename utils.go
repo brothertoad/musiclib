@@ -3,7 +3,7 @@ package tags
 import (
   "os"
   "math"
-  "strconv"
+  "fmt"
 )
 
 func check(e error) {
@@ -21,5 +21,8 @@ func readFile(path string) []byte {
 func setDuration(duration float64, m map[string]string) {
   // Round to nearest integer, then make it a string.
   // Should probably convert to mm:ss here
-  m["duration"] = strconv.Itoa(int(math.Round(duration)))
+  totalSeconds := int(math.Round(duration))
+  minutes := totalSeconds / 60
+  seconds := totalSeconds % 60
+  m["duration"] = fmt.Sprintf("%d:%02d", minutes, seconds)
 }
