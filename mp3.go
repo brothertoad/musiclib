@@ -2,7 +2,6 @@ package tags
 
 import (
   "os"
-  "fmt"
   "io"
   "log"
   "strings"
@@ -20,8 +19,8 @@ var v1l3BitRates = []float64{ 0, 32000.0, 40000.0, 48000.0,
   224000.0, 256000.0, 320000.0 }
 var v1l3SampleRates = []float64{ 44100.0, 48000.0, 32000.0 }
 
-func Mp3TagsFromFile(path string) map[string]string {
-  mp3ParseFile(path)
+func xxxMp3TagsFromFile(path string) map[string]string {
+  _ = Mp3TagsFromFile(path)
   bb := bytebufferfromfile(path)
   if string(bb.read(3)) != "ID3" {
     log.Fatalf("mp3 file %s does not have correct magic number\n", path)
@@ -35,8 +34,9 @@ func Mp3TagsFromFile(path string) map[string]string {
   return m
 }
 
-func mp3ParseFile(path string) {
+func Mp3TagsFromFile(path string) map[string]string {
   buffer := readFile(path)
+  m := make(map[string]string)
   // Look at each byte.  If the byte is 0xff, check to see if the upper three bits
   // of the next byte are set.  If so, it is the start of a frame.  If not, check
   // to see if the byte is 0x49, which represents the letter 'I'.  If so, check
@@ -59,11 +59,12 @@ func mp3ParseFile(path string) {
       }
     } else if b == 0x49 {
       if buffer[n+1] == 0x44 && buffer[n+2] == 0x33 {
-        increment = mp3ParseID3(buffer[n:])
+        increment = mp3ParseID3(buffer[n:], m)
       }
     }
   }
-  fmt.Printf("Found %d frames, totaling %d bytes, with duration %f.\n", numFrames, totalFrameBytes, duration)
+  setDuration(duration, m)
+  return m
 }
 
 // Returns the size of this frame in bytes and the duration of the sound
@@ -92,7 +93,7 @@ func mp3ParseFrame(buffer []byte, offset int) (int, float64) {
   return frameSize, 1152.0 / sampleRate
 }
 
-func mp3ParseID3(buffer []byte) int {
+func mp3ParseID3(buffer []byte, m map[string]string) int {
   headerSize := 10
   // Check for extended header
   if buffer[5] & 0x40 == 0x40 {
@@ -106,7 +107,7 @@ func mp3ParseID3(buffer []byte) int {
     if strings.HasPrefix(key, "T") {
       // Ignore encoding for now.
       value := string(buffer[j+11:j+size+10])
-      fmt.Printf("Should add key %s, value %s to map\n", key, value)
+      m[key] = value
     }
     j += size + 10
   }
