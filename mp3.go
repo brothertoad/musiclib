@@ -4,6 +4,7 @@ import (
   "log"
   "strings"
   "encoding/binary"
+  "unicode/utf16"
 )
 
 // version 1, layer 3 bit rates and sample rates
@@ -85,12 +86,28 @@ func mp3ParseID3(buffer []byte, m map[string]string) int {
     size := int(binary.BigEndian.Uint32(buffer[j+4:j+8]))
     if strings.HasPrefix(key, "T") {
       // Ignore encoding for now.
-      value := string(buffer[j+11:j+size+10])
+      encoding := buffer[j+10]
+      var value string
+      // 0 is ASCII, 3 is UTF-8
+      if encoding == 0 || encoding == 3 {
+        value = string(buffer[j+11:j+size+10])
+      } else if encoding == 1 {
+        // String is UTF-16, with BOM
+        value = stringFromUTF16(buffer[j+11:j+size+10])
+      }
       m[key] = value
     }
     j += size + 10
   }
   return mp3GetID3Size(buffer[6:]) + headerSize
+}
+
+func stringFromUTF16(b []byte) string {
+  b16 := make([]uint16, len(b)/2)
+  for j := 0; j < len(b)/2; j++ {
+    b16[j] = uint16(b[2*j+1]) << 8 + uint16(b[2*j])
+  }
+  return string(utf16.Decode(b16))
 }
 
 func mp3GetID3Size(b []byte) int {
