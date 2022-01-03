@@ -9,6 +9,9 @@ const magic = 0x664c6143
 const streaminfotype byte = 0
 const commenttype byte = 4
 
+// Most of the info for this code came from this page:
+// https://xiph.org/flac/format.html
+
 func FlacTagsFromFile(path string) map[string]string {
   bb := bytebufferfromfile(path)
   if bb.read32BE() != magic {

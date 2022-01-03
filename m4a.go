@@ -13,6 +13,11 @@ const ilst = "ilst"
 const trackkey = "trkn"
 const diskkey = "disk"
 
+// Most of the info for this code came from these pages:
+// https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html
+// https://docs.fileformat.com/audio/m4a/
+// https://www.file-recovery.com/m4a-signature-format.htm
+
 func M4aTagsFromFile(path string) map[string]string {
   bb := bytebufferfromfile(path)
   m := make(map[string]string)

@@ -48,7 +48,11 @@ func Mp3TagsFromFile(path string) map[string]string {
 }
 
 // Returns the size of this frame in bytes and the duration of the sound
-// in this frame.
+// in this frame.  This link describes the frames:
+// http://www.mp3-tech.org/programmer/frame_header.html
+// These pages were helpful too:
+// https://web.archive.org/web/20070821052201/https://www.id3.org/mp3Frame
+// https://stackoverflow.com/questions/6220660/calculating-the-length-of-mp3-frames-in-milliseconds
 func mp3ParseFrame(buffer []byte, offset int) (int, float64) {
   version := (buffer[1] >> 3) & 0x03
   layer := (buffer[1] >> 1) & 0x03
@@ -73,6 +77,10 @@ func mp3ParseFrame(buffer []byte, offset int) (int, float64) {
   return frameSize, 1152.0 / sampleRate
 }
 
+// MP3 ID3 blocks are described here:
+// https://id3.org/id3v2.3.0
+// The encodings are listed here:
+// https://stackoverflow.com/questions/9857727/text-encoding-in-id3v2-3-tags
 func mp3ParseID3(buffer []byte, m map[string]string) int {
   headerSize := 10
   // Check for extended header
