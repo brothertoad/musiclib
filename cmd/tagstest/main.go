@@ -29,10 +29,10 @@ func main() {
       if err := scanner.Err(); err != nil {
         log.Fatal(err)
       }
-      } else {
-        dumpFile(path)
-      }
+    } else {
+      dumpFile(path)
     }
+  }
 }
 
 func dumpFile(path string) {
