@@ -44,6 +44,7 @@ func Mp3TagsFromFile(path string) map[string]string {
     }
   }
   setDuration(duration, m)
+  setMimeAndExtension("audio/mp3", "mp3", m)
   return m
 }
 

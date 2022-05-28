@@ -6,6 +6,10 @@ import (
   "fmt"
 )
 
+const DurationKey = "duration"
+const mimeKey = "mime"
+const extensionKey = "extension"
+
 func check(e error) {
   if e!= nil {
     panic(e)
@@ -19,10 +23,14 @@ func readFile(path string) []byte {
 }
 
 func setDuration(duration float64, m map[string]string) {
-  // Round to nearest integer, then make it a string.
-  // Should probably convert to mm:ss here
+  // Round to nearest integer, make it a string, convert to mm:ss.
   totalSeconds := int(math.Round(duration))
   minutes := totalSeconds / 60
   seconds := totalSeconds % 60
-  m["duration"] = fmt.Sprintf("%d:%02d", minutes, seconds)
+  m[DurationKey] = fmt.Sprintf("%d:%02d", minutes, seconds)
+}
+
+func setMimeAndExtension(mime string, extension string, m map[string]string) {
+  m[mimeKey] = mime
+  m[extensionKey] = extension
 }

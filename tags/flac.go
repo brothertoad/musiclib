@@ -23,6 +23,7 @@ func FlacTagsFromFile(path string) map[string]string {
     if blocktype == commenttype {
       cbb := bytebufferfromparent(bb, size)
       getFlacComments(cbb, m)
+      setMimeAndExtension("audio/flac", "flac", m)
     } else if blocktype == streaminfotype {
       sibb := bytebufferfromparent(bb, size)
       getFlacDuration(sibb, m)

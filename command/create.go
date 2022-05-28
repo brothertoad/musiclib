@@ -44,6 +44,8 @@ func loadFile(path string, de fs.DirEntry, err error) error {
     return nil
   }
   // Standardize keys.
+  // Add sort keys.
+  // Add flags.
   songs = append(songs, m)
   return nil
 }

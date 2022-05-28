@@ -30,6 +30,7 @@ func M4aTagsFromFile(path string) map[string]string {
   readm4atags(ilstatom, m)
   // Now, find the mvhd atom with the moov atom to get the duration.
   getM4aDuration(moovatom, m)
+  setMimeAndExtension("audio/aac", "m4a", m)
   return m
 }
 
