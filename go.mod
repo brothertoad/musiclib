@@ -1,3 +1,3 @@
-module github.com/brothertoad/tags
+module github.com/brothertoad/musiclib
 
 go 1.17

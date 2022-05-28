@@ -6,7 +6,7 @@ import (
   "fmt"
   "strings"
   "log"
-  "github.com/brothertoad/tags"
+  "github.com/brothertoad/musiclib/tags"
 )
 
 // Test program for the tag module.  Input can be either a flac file, an mp3 file,
