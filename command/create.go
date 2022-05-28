@@ -3,25 +3,28 @@ package command
 import (
   "fmt"
   "io/fs"
+  "log"
+  "os"
   "path/filepath"
   "github.com/urfave/cli/v2"
   "github.com/brothertoad/musiclib/tags"
 )
 
-const dirFlag string = "dir"
-
 var CreateCommand = cli.Command {
   Name: "create",
   Usage: "create (or recreate) the database",
   Action: doCreate,
-  Flags: []cli.Flag {
-    &cli.StringFlag {Name: dirFlag, Value: "", Usage: "top level directory to search", Required: true,},
-  },
 }
 
 func doCreate(c *cli.Context) error {
-  fmt.Printf("Creating database from directory %s...\n", c.String(dirFlag))
-  filepath.WalkDir(c.String(dirFlag), loadFile)
+  fmt.Printf("Creating database from directory %s...\n", config.dir)
+  if len(config.dir) == 0 {
+    log.Fatalln("No top level directory specified in configuration.")
+  }
+  if _, err := os.Stat(config.dir); os.IsNotExist(err) {
+  	log.Fatalf("Top level directory '%s' does not exist.\n", config.dir)
+  }
+  filepath.WalkDir(config.dir, loadFile)
   return nil
 }
 
