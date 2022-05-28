@@ -16,7 +16,7 @@ func main() {
     Compiled: time.Now(),
     Usage: "maintain musiclib database",
     Flags: []cli.Flag {
-      &cli.StringFlag {Name: "config",Required: true, EnvVars: []string{"MUSICLIB_CONFIG"},},
+      &cli.StringFlag {Name: "config", Required: true, EnvVars: []string{"MUSICLIB_CONFIG"},},
     },
     Commands: []*cli.Command {
       &command.CreateCommand,

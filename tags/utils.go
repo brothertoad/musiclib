@@ -4,11 +4,8 @@ import (
   "os"
   "math"
   "fmt"
+  "github.com/brothertoad/musiclib/common"
 )
-
-const DurationKey = "duration"
-const mimeKey = "mime"
-const extensionKey = "extension"
 
 func check(e error) {
   if e!= nil {
@@ -27,10 +24,10 @@ func setDuration(duration float64, m map[string]string) {
   totalSeconds := int(math.Round(duration))
   minutes := totalSeconds / 60
   seconds := totalSeconds % 60
-  m[DurationKey] = fmt.Sprintf("%d:%02d", minutes, seconds)
+  m[common.DurationKey] = fmt.Sprintf("%d:%02d", minutes, seconds)
 }
 
 func setMimeAndExtension(mime string, extension string, m map[string]string) {
-  m[mimeKey] = mime
-  m[extensionKey] = extension
+  m[common.MimeKey] = mime
+  m[common.ExtensionKey] = extension
 }
