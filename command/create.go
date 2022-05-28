@@ -13,13 +13,13 @@ const dirFlag string = "dir"
 var CreateCommand = cli.Command {
   Name: "create",
   Usage: "create (or recreate) the database",
-  Action: create,
+  Action: doCreate,
   Flags: []cli.Flag {
     &cli.StringFlag {Name: dirFlag, Value: "", Usage: "top level directory to search", Required: true,},
   },
 }
 
-func create(c *cli.Context) error {
+func doCreate(c *cli.Context) error {
   fmt.Printf("Creating database from directory %s...\n", c.String(dirFlag))
   filepath.WalkDir(c.String(dirFlag), loadFile)
   return nil
