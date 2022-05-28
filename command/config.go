@@ -12,7 +12,7 @@ var config struct {
   MusicDir string `yaml:"musicDir"`
   EncodedDir string `yaml:"encodedDir"`
   Mp3Dir string `yaml:"mp3Dir"`
-  EncodeCommand interface{} `yaml:"encodeCommand"`
+  EncodeCommand []string `yaml:"encodeCommand"`
 }
 
 func LoadConfig(c *cli.Context) error {
