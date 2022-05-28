@@ -7,7 +7,7 @@ import (
   "github.com/brothertoad/musiclib/command"
 )
 
-// Program for maintaining the music library database.  First argument is a command.
+// Program for maintaining the music library database.  First non-option argument is a command.
 // Code for commands is in command directory.
 
 func main() {
