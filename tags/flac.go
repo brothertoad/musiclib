@@ -3,6 +3,7 @@ package tags
 import (
   "log"
   "strings"
+  "github.com/brothertoad/musiclib/common"
 )
 
 const magic = 0x664c6143
@@ -12,21 +13,21 @@ const commenttype byte = 4
 // Most of the info for this code came from this page:
 // https://xiph.org/flac/format.html
 
-func FlacTagsFromFile(path string) map[string]string {
+func FlacTagsFromFile(path string) common.Song {
   bb := bytebufferfromfile(path)
   if bb.read32BE() != magic {
     log.Fatalf("flac file %s does not have correct magic number\n", path)
   }
-  m := make(map[string]string)
+  song := make(common.Song)
   for {
     blocktype, lastone, size := nextmetablock(bb)
     if blocktype == commenttype {
       cbb := bytebufferfromparent(bb, size)
-      getFlacComments(cbb, m)
-      setMimeAndExtension("audio/flac", "flac", m)
+      getFlacComments(cbb, song)
+      setMimeAndExtension("audio/flac", "flac", song)
     } else if blocktype == streaminfotype {
       sibb := bytebufferfromparent(bb, size)
-      getFlacDuration(sibb, m)
+      getFlacDuration(sibb, song)
     } else {
       bb.skip(size)
     }
@@ -34,10 +35,10 @@ func FlacTagsFromFile(path string) map[string]string {
       break
     }
   }
-  return m
+  return song
 }
 
-func getFlacComments(cbb *bytebuffer, m map[string]string) {
+func getFlacComments(cbb *bytebuffer, m common.Song) {
   vendorsize := cbb.read32LE()
   cbb.skip(vendorsize)
   num := cbb.read32LE()
@@ -49,7 +50,7 @@ func getFlacComments(cbb *bytebuffer, m map[string]string) {
   }
 }
 
-func getFlacDuration(bb *bytebuffer, m map[string]string) {
+func getFlacDuration(bb *bytebuffer, m common.Song) {
   bb.skip(10)
   // We're going to do a shortcut, and assume the upper four bits of the
   // total samples are zero.  This is good to over 750 minutes.

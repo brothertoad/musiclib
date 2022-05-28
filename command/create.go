@@ -7,6 +7,7 @@ import (
   "os"
   "path/filepath"
   "github.com/urfave/cli/v2"
+  "github.com/brothertoad/musiclib/common"
   "github.com/brothertoad/musiclib/tags"
 )
 
@@ -20,7 +21,7 @@ var keyTranslations = map[string]string {
   "xyz": "abc",
 }
 
-var songs []map[string]string
+var songs []common.Song
 
 func doCreate(c *cli.Context) error {
   fmt.Printf("Creating database from directory %s...\n", config.MusicDir)
@@ -30,7 +31,7 @@ func doCreate(c *cli.Context) error {
   if _, err := os.Stat(config.MusicDir); os.IsNotExist(err) {
   	log.Fatalf("Top level directory '%s' does not exist.\n", config.MusicDir)
   }
-  songs = make([]map[string]string, 5000)
+  songs = make([]common.Song, 5000)
   filepath.WalkDir(config.MusicDir, loadFile)
   return nil
 }

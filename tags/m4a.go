@@ -2,6 +2,7 @@ package tags
 
 import (
   "fmt"
+  "github.com/brothertoad/musiclib/common"
 )
 
 const moov = "moov"
@@ -18,9 +19,9 @@ const diskkey = "disk"
 // https://docs.fileformat.com/audio/m4a/
 // https://www.file-recovery.com/m4a-signature-format.htm
 
-func M4aTagsFromFile(path string) map[string]string {
+func M4aTagsFromFile(path string) common.Song {
   bb := bytebufferfromfile(path)
-  m := make(map[string]string)
+  m := make(common.Song)
   moovatom := findatom(bb, moov)
   udtaatom := findatom(moovatom, udta)
   metaatom := findatom(udtaatom, meta)
@@ -34,7 +35,7 @@ func M4aTagsFromFile(path string) map[string]string {
   return m
 }
 
-func readm4atags(bb *bytebuffer, m map[string]string) {
+func readm4atags(bb *bytebuffer, m common.Song) {
   keys := [...]string{ "\xa9nam", "\xa9ART", "\xa9alb", "soar", "soal" }
   for bb.remaining() > 0 {
     size := bb.read32BE();
@@ -72,7 +73,7 @@ func readm4atags(bb *bytebuffer, m map[string]string) {
   }
 }
 
-func getM4aDuration(mbb *bytebuffer, m map[string]string) {
+func getM4aDuration(mbb *bytebuffer, m common.Song) {
   mbb.rewind()
   mvhdatom := findatom(mbb, mvhd)
   mvhdatom.skip(12)

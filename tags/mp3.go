@@ -5,6 +5,7 @@ import (
   "strings"
   "encoding/binary"
   "unicode/utf16"
+  "github.com/brothertoad/musiclib/common"
 )
 
 // version 1, layer 3 bit rates and sample rates
@@ -14,9 +15,9 @@ var v1l3BitRates = []float64{ 0, 32000.0, 40000.0, 48000.0,
   224000.0, 256000.0, 320000.0 }
 var v1l3SampleRates = []float64{ 44100.0, 48000.0, 32000.0 }
 
-func Mp3TagsFromFile(path string) map[string]string {
+func Mp3TagsFromFile(path string) common.Song {
   buffer := readFile(path)
-  m := make(map[string]string)
+  m := make(common.Song)
   // Look at each byte.  If the byte is 0xff, check to see if the upper three bits
   // of the next byte are set.  If so, it is the start of a frame.  If not, check
   // to see if the byte is 0x49, which represents the letter 'I'.  If so, check
@@ -82,7 +83,7 @@ func mp3ParseFrame(buffer []byte, offset int) (int, float64) {
 // https://id3.org/id3v2.3.0
 // The encodings are listed here:
 // https://stackoverflow.com/questions/9857727/text-encoding-in-id3v2-3-tags
-func mp3ParseID3(buffer []byte, m map[string]string) int {
+func mp3ParseID3(buffer []byte, m common.Song) int {
   headerSize := 10
   // Check for extended header
   if buffer[5] & 0x40 == 0x40 {

@@ -2,9 +2,10 @@ package tags
 
 import (
   "strings"
+  "github.com/brothertoad/musiclib/common"
 )
 
-func GetTagsFromFile(path string) map[string]string {
+func GetTagsFromFile(path string) common.Song {
   if strings.HasSuffix(path, "flac") {
     return FlacTagsFromFile(path)
   } else if strings.HasSuffix(path, "mp3") {
@@ -12,5 +13,5 @@ func GetTagsFromFile(path string) map[string]string {
   } else if strings.HasSuffix(path, "m4a") {
     return M4aTagsFromFile(path)
   }
-  return make(map[string]string)
+  return make(common.Song)
 }
