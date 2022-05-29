@@ -1,10 +1,15 @@
 package command
 
 import (
+  "crypto/md5"
+  "encoding/hex"
   "fmt"
+  "hash"
+  "io"
   "io/fs"
   "io/ioutil"
   "log"
+  "os"
   "path/filepath"
   "strings"
   "github.com/urfave/cli/v2"
@@ -13,14 +18,16 @@ import (
   "github.com/brothertoad/musiclib/tags"
 )
 
-const yamlFlag = "yaml"
+const saveFlag = "save"
+const loadFlag = "load"
 
 var CreateCommand = cli.Command {
   Name: "create",
   Usage: "create (or recreate) the database",
   Action: doCreate,
   Flags: []cli.Flag {
-    &cli.StringFlag {Name: yamlFlag},
+    &cli.StringFlag {Name: saveFlag},
+    &cli.StringFlag {Name: loadFlag},
   },
 }
 
@@ -47,12 +54,13 @@ var keyTranslations = map[string]string {
 var requiredKeys = []string {
   common.TitleKey, common.ArtistKey, common.AlbumKey, common.TrackNumberKey, common.DiscNumberKey,
   common.ArtistSortKey, common.AlbumSortKey, common.FullPathKey, common.BasePathKey,
-  common.MimeKey, common.ExtensionKey,
-  common.FlagsKey, common.DurationKey,
+  common.MimeKey, common.ExtensionKey, common.EncodedExtensionKey, common.IsEncodedKey,
+  common.FlagsKey, common.DurationKey, common.Md5Key,
 }
 
 var songMaps []common.SongMap
 var musicDirLength int
+var hasher hash.Hash
 
 func doCreate(c *cli.Context) error {
   fmt.Printf("Creating database from directory %s...\n", config.MusicDir)
@@ -62,13 +70,14 @@ func doCreate(c *cli.Context) error {
   dirMustExist(config.MusicDir)
   // save the length, as we need it to remove the prefix of each file
   musicDirLength = len(config.MusicDir)
+  hasher = md5.New()
   songMaps = make([]common.SongMap, 0, 5000)
   filepath.WalkDir(config.MusicDir, loadFile)
-  if len(c.String(yamlFlag)) > 0 {
-    fmt.Printf("Saving yaml in '%s'\n", c.String(yamlFlag))
+  if len(c.String(saveFlag)) > 0 {
+    fmt.Printf("Saving yaml in '%s'\n", c.String(saveFlag))
     data, err := yaml.Marshal(&songMaps)
     checkError(err)
-    err = ioutil.WriteFile(c.String(yamlFlag), data, 0644)
+    err = ioutil.WriteFile(c.String(saveFlag), data, 0644)
     checkError(err)
   }
   fmt.Printf("Found %d songs.\n", len(songMaps))
@@ -87,6 +96,7 @@ func loadFile(path string, de fs.DirEntry, err error) error {
   song[common.FlagsKey] = common.EncodeFlag
   translateKeys(song)
   addSortKeys(song)
+  addMd5Key(song)
   checkForMissingKeys(song)
   songMaps = append(songMaps, filterKeys(song))
   return nil
@@ -167,6 +177,17 @@ func getSortValue(pureValue string) string {
     return pureValue[4:]
   }
   return pureValue
+}
+
+func addMd5Key(song common.SongMap) {
+  f, err := os.Open(song[common.FullPathKey])
+  checkError(err)
+  defer f.Close()
+  hasher.Reset()
+  if _, err := io.Copy(hasher, f); err != nil {
+    log.Fatalf("Error trying to compute md5sum of %s\n", song[common.FullPathKey])
+  }
+  song[common.Md5Key] = hex.EncodeToString(hasher.Sum(nil))
 }
 
 func checkForMissingKeys(song common.SongMap) {
