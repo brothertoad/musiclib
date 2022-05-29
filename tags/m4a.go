@@ -32,6 +32,8 @@ func M4aTagsFromFile(path string) common.Song {
   // Now, find the mvhd atom with the moov atom to get the duration.
   getM4aDuration(moovatom, m)
   setMimeAndExtension("audio/aac", "m4a", m)
+  m[common.EncodedExtensionKey] = "m4a"
+  m[common.IsEncodedKey] = "true"
   return m
 }
 

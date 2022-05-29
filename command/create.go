@@ -46,11 +46,13 @@ var keyTranslations = map[string]string {
 // In addition to being required, these are the only keys we save.
 var requiredKeys = []string {
   common.TitleKey, common.ArtistKey, common.AlbumKey, common.TrackNumberKey, common.DiscNumberKey,
-  common.ArtistSortKey, common.AlbumSortKey, common.PathKey, common.MimeKey, common.ExtensionKey,
+  common.ArtistSortKey, common.AlbumSortKey, common.FullPathKey, common.BasePathKey,
+  common.MimeKey, common.ExtensionKey,
   common.FlagsKey, common.DurationKey,
 }
 
 var songs []common.Song
+var musicDirLength int
 
 func doCreate(c *cli.Context) error {
   fmt.Printf("Creating database from directory %s...\n", config.MusicDir)
@@ -58,6 +60,8 @@ func doCreate(c *cli.Context) error {
     log.Fatalln("No top level directory specified in configuration.")
   }
   dirMustExist(config.MusicDir)
+  // save the length, as we need it to remove the prefix of each file
+  musicDirLength = len(config.MusicDir)
   songs = make([]common.Song, 0, 5000)
   filepath.WalkDir(config.MusicDir, loadFile)
   if len(c.String(yamlFlag)) > 0 {
@@ -79,13 +83,21 @@ func loadFile(path string, de fs.DirEntry, err error) error {
   if song == nil || len(song) == 0 {
     return nil
   }
-  song[common.PathKey] = path
+  setPaths(song, path)
   song[common.FlagsKey] = common.EncodeFlag
   translateKeys(song)
   addSortKeys(song)
   checkForMissingKeys(song)
   songs = append(songs, filterKeys(song))
   return nil
+}
+
+func setPaths(song common.Song, path string) {
+  song[common.FullPathKey] = path
+  // We will make the path relative to config.MusicDir, and remove the extension.
+  pathLength := len(path)
+  extLength := len(song[common.ExtensionKey])
+  song[common.BasePathKey] = path[musicDirLength:(pathLength-extLength)]
 }
 
 // Replace keys with standard names.
@@ -103,7 +115,7 @@ func translateKeys(song common.Song) {
       s := strings.Split(tntt, "/")
       song[common.TrackNumberKey] = s[0]
     } else {
-      log.Printf("Can't get track number for '%s'\n", song[common.PathKey])
+      log.Printf("Can't get track number for '%s'\n", song[common.FullPathKey])
     }
   }
   // Check for the disc number.  If it doesn't exist, see if it has the TPOS tag, which
@@ -130,7 +142,7 @@ func addSortKey(song common.Song, pureKey string, sortKey string) {
       song[sortKey] = getSortValue(vp)
     } else {
       // If we don't have the pure key, we've got problems.
-      log.Fatalf("no key '%s' for '%s'\n", pureKey, song[common.PathKey])
+      log.Fatalf("no key '%s' for '%s'\n", pureKey, song[common.FullPathKey])
     }
   }
 }

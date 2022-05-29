@@ -25,6 +25,8 @@ func FlacTagsFromFile(path string) common.Song {
       cbb := bytebufferfromparent(bb, size)
       getFlacComments(cbb, song)
       setMimeAndExtension("audio/flac", "flac", song)
+      song[common.EncodedExtensionKey] = "mp3"
+      song[common.IsEncodedKey] = "false"
     } else if blocktype == streaminfotype {
       sibb := bytebufferfromparent(bb, size)
       getFlacDuration(sibb, song)

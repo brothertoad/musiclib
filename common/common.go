@@ -1,6 +1,7 @@
 package common
 
-const PathKey = "path"
+const FullPathKey = "fullPath"
+const BasePathKey = "basePath"
 const TitleKey = "title"
 const ArtistKey = "artist"
 const AlbumKey = "album"
@@ -11,6 +12,8 @@ const AlbumSortKey = "albumSort"
 const DurationKey = "duration"
 const MimeKey = "mime"
 const ExtensionKey = "extension"
+const EncodedExtensionKey = "encodedExtension"
+const IsEncodedKey = "isEncoded"
 const FlagsKey = "flags"
 
 const EncodeFlag = "e"

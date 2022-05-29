@@ -46,6 +46,8 @@ func Mp3TagsFromFile(path string) common.Song {
   }
   setDuration(duration, m)
   setMimeAndExtension("audio/mp3", "mp3", m)
+  m[common.EncodedExtensionKey] = "mp3"
+  m[common.IsEncodedKey] = "true"
   return m
 }
 
