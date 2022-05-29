@@ -13,4 +13,8 @@ const MimeKey = "mime"
 const ExtensionKey = "extension"
 const FlagsKey = "flags"
 
+const EncodeFlag = "e"
+const PlayerFlag = "p"
+const CarFlag = "c"
+
 type Song map[string]string

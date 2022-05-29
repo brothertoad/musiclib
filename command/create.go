@@ -80,7 +80,7 @@ func loadFile(path string, de fs.DirEntry, err error) error {
     return nil
   }
   song[common.PathKey] = path
-  song[common.FlagsKey] = ""
+  song[common.FlagsKey] = common.EncodeFlag
   translateKeys(song)
   addSortKeys(song)
   checkForMissingKeys(song)
