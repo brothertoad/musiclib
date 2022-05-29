@@ -3,21 +3,27 @@ package command
 import (
   "fmt"
   "io/fs"
+  "io/ioutil"
   "log"
   "path/filepath"
   "strings"
   "github.com/urfave/cli/v2"
+  "gopkg.in/yaml.v3"
   "github.com/brothertoad/musiclib/common"
   "github.com/brothertoad/musiclib/tags"
 )
+
+const yamlFlag = "yaml"
 
 var CreateCommand = cli.Command {
   Name: "create",
   Usage: "create (or recreate) the database",
   Action: doCreate,
+  Flags: []cli.Flag {
+    &cli.StringFlag {Name: yamlFlag},
+  },
 }
 
-// Perhaps use constants from commom for target keys.
 var keyTranslations = map[string]string {
   "\xa9nam": common.TitleKey,
   "\xa9ART" : common.ArtistKey,
@@ -37,9 +43,11 @@ var keyTranslations = map[string]string {
   "TALB" : common.AlbumKey,
 }
 
+// In addition to being required, these are the only keys we save.
 var requiredKeys = []string {
   common.TitleKey, common.ArtistKey, common.AlbumKey, common.TrackNumberKey, common.DiscNumberKey,
-  common.ArtistSortKey, common.AlbumSortKey,
+  common.ArtistSortKey, common.AlbumSortKey, common.PathKey, common.MimeKey, common.ExtensionKey,
+  common.FlagsKey, common.DurationKey,
 }
 
 var songs []common.Song
@@ -50,8 +58,16 @@ func doCreate(c *cli.Context) error {
     log.Fatalln("No top level directory specified in configuration.")
   }
   dirMustExist(config.MusicDir)
-  songs = make([]common.Song, 5000)
+  songs = make([]common.Song, 0, 5000)
   filepath.WalkDir(config.MusicDir, loadFile)
+  if len(c.String(yamlFlag)) > 0 {
+    fmt.Printf("Saving yaml in '%s'\n", c.String(yamlFlag))
+    data, err := yaml.Marshal(&songs)
+    checkError(err)
+    err = ioutil.WriteFile(c.String(yamlFlag), data, 0644)
+    checkError(err)
+  }
+  fmt.Printf("Found %d songs.\n", len(songs))
   return nil
 }
 
@@ -64,11 +80,11 @@ func loadFile(path string, de fs.DirEntry, err error) error {
     return nil
   }
   song[common.PathKey] = path
+  song[common.FlagsKey] = ""
   translateKeys(song)
   addSortKeys(song)
-  song[common.FlagsKey] = ""
   checkForMissingKeys(song)
-  songs = append(songs, song)
+  songs = append(songs, filterKeys(song))
   return nil
 }
 
@@ -147,4 +163,12 @@ func checkForMissingKeys(song common.Song) {
       fmt.Printf("%+v is missing %s\n", song, k)
     }
   }
+}
+
+func filterKeys(song common.Song) common.Song {
+  filtered := make(common.Song)
+  for _, k := range(requiredKeys) {
+    filtered[k] = song[k]
+  }
+  return filtered;
 }
