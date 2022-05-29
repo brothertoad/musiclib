@@ -19,9 +19,9 @@ const diskkey = "disk"
 // https://docs.fileformat.com/audio/m4a/
 // https://www.file-recovery.com/m4a-signature-format.htm
 
-func M4aTagsFromFile(path string) common.Song {
+func M4aTagsFromFile(path string) common.SongMap {
   bb := bytebufferfromfile(path)
-  m := make(common.Song)
+  m := make(common.SongMap)
   moovatom := findatom(bb, moov)
   udtaatom := findatom(moovatom, udta)
   metaatom := findatom(udtaatom, meta)
@@ -37,7 +37,7 @@ func M4aTagsFromFile(path string) common.Song {
   return m
 }
 
-func readm4atags(bb *bytebuffer, m common.Song) {
+func readm4atags(bb *bytebuffer, m common.SongMap) {
   keys := [...]string{ "\xa9nam", "\xa9ART", "\xa9alb", "soar", "soal" }
   for bb.remaining() > 0 {
     size := bb.read32BE();
@@ -75,7 +75,7 @@ func readm4atags(bb *bytebuffer, m common.Song) {
   }
 }
 
-func getM4aDuration(mbb *bytebuffer, m common.Song) {
+func getM4aDuration(mbb *bytebuffer, m common.SongMap) {
   mbb.rewind()
   mvhdatom := findatom(mbb, mvhd)
   mvhdatom.skip(12)

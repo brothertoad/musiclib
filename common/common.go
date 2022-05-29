@@ -20,4 +20,4 @@ const EncodeFlag = "e"
 const PlayerFlag = "p"
 const CarFlag = "c"
 
-type Song map[string]string
+type SongMap map[string]string

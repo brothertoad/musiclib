@@ -51,7 +51,7 @@ var requiredKeys = []string {
   common.FlagsKey, common.DurationKey,
 }
 
-var songs []common.Song
+var songMaps []common.SongMap
 var musicDirLength int
 
 func doCreate(c *cli.Context) error {
@@ -62,16 +62,16 @@ func doCreate(c *cli.Context) error {
   dirMustExist(config.MusicDir)
   // save the length, as we need it to remove the prefix of each file
   musicDirLength = len(config.MusicDir)
-  songs = make([]common.Song, 0, 5000)
+  songMaps = make([]common.SongMap, 0, 5000)
   filepath.WalkDir(config.MusicDir, loadFile)
   if len(c.String(yamlFlag)) > 0 {
     fmt.Printf("Saving yaml in '%s'\n", c.String(yamlFlag))
-    data, err := yaml.Marshal(&songs)
+    data, err := yaml.Marshal(&songMaps)
     checkError(err)
     err = ioutil.WriteFile(c.String(yamlFlag), data, 0644)
     checkError(err)
   }
-  fmt.Printf("Found %d songs.\n", len(songs))
+  fmt.Printf("Found %d songs.\n", len(songMaps))
   return nil
 }
 
@@ -88,11 +88,11 @@ func loadFile(path string, de fs.DirEntry, err error) error {
   translateKeys(song)
   addSortKeys(song)
   checkForMissingKeys(song)
-  songs = append(songs, filterKeys(song))
+  songMaps = append(songMaps, filterKeys(song))
   return nil
 }
 
-func setPaths(song common.Song, path string) {
+func setPaths(song common.SongMap, path string) {
   song[common.FullPathKey] = path
   // We will make the path relative to config.MusicDir, and remove the extension.
   pathLength := len(path)
@@ -101,7 +101,7 @@ func setPaths(song common.Song, path string) {
 }
 
 // Replace keys with standard names.
-func translateKeys(song common.Song) {
+func translateKeys(song common.SongMap) {
   for k, v := range song {
     if trans, present := keyTranslations[k]; present {
       delete(song, k)
@@ -131,12 +131,12 @@ func translateKeys(song common.Song) {
   }
 }
 
-func addSortKeys(song common.Song) {
+func addSortKeys(song common.SongMap) {
   addSortKey(song, common.ArtistKey, common.ArtistSortKey)
   addSortKey(song, common.AlbumKey, common.AlbumSortKey)
 }
 
-func addSortKey(song common.Song, pureKey string, sortKey string) {
+func addSortKey(song common.SongMap, pureKey string, sortKey string) {
   if _, present := song[sortKey]; !present {
     if vp, purePresent := song[pureKey]; purePresent {
       song[sortKey] = getSortValue(vp)
@@ -169,7 +169,7 @@ func getSortValue(pureValue string) string {
   return pureValue
 }
 
-func checkForMissingKeys(song common.Song) {
+func checkForMissingKeys(song common.SongMap) {
   for _, k := range(requiredKeys) {
     if _, present := song[k]; !present {
       fmt.Printf("%+v is missing %s\n", song, k)
@@ -177,8 +177,8 @@ func checkForMissingKeys(song common.Song) {
   }
 }
 
-func filterKeys(song common.Song) common.Song {
-  filtered := make(common.Song)
+func filterKeys(song common.SongMap) common.SongMap {
+  filtered := make(common.SongMap)
   for _, k := range(requiredKeys) {
     filtered[k] = song[k]
   }

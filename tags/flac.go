@@ -13,12 +13,12 @@ const commenttype byte = 4
 // Most of the info for this code came from this page:
 // https://xiph.org/flac/format.html
 
-func FlacTagsFromFile(path string) common.Song {
+func FlacTagsFromFile(path string) common.SongMap {
   bb := bytebufferfromfile(path)
   if bb.read32BE() != magic {
     log.Fatalf("flac file %s does not have correct magic number\n", path)
   }
-  song := make(common.Song)
+  song := make(common.SongMap)
   for {
     blocktype, lastone, size := nextmetablock(bb)
     if blocktype == commenttype {
@@ -40,7 +40,7 @@ func FlacTagsFromFile(path string) common.Song {
   return song
 }
 
-func getFlacComments(cbb *bytebuffer, m common.Song) {
+func getFlacComments(cbb *bytebuffer, m common.SongMap) {
   vendorsize := cbb.read32LE()
   cbb.skip(vendorsize)
   num := cbb.read32LE()
@@ -52,7 +52,7 @@ func getFlacComments(cbb *bytebuffer, m common.Song) {
   }
 }
 
-func getFlacDuration(bb *bytebuffer, m common.Song) {
+func getFlacDuration(bb *bytebuffer, m common.SongMap) {
   bb.skip(10)
   // We're going to do a shortcut, and assume the upper four bits of the
   // total samples are zero.  This is good to over 750 minutes.

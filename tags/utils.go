@@ -19,7 +19,7 @@ func readFile(path string) []byte {
   return b
 }
 
-func setDuration(duration float64, m common.Song) {
+func setDuration(duration float64, m common.SongMap) {
   // Round to nearest integer, make it a string, convert to mm:ss.
   totalSeconds := int(math.Round(duration))
   minutes := totalSeconds / 60
@@ -27,7 +27,7 @@ func setDuration(duration float64, m common.Song) {
   m[common.DurationKey] = fmt.Sprintf("%d:%02d", minutes, seconds)
 }
 
-func setMimeAndExtension(mime string, extension string, m common.Song) {
+func setMimeAndExtension(mime string, extension string, m common.SongMap) {
   m[common.MimeKey] = mime
   m[common.ExtensionKey] = extension
 }
