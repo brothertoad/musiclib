@@ -39,6 +39,7 @@ var keyTranslations = map[string]string {
 
 var requiredKeys = []string {
   common.TitleKey, common.ArtistKey, common.AlbumKey, common.TrackNumberKey, common.DiscNumberKey,
+  common.ArtistSortKey, common.AlbumSortKey,
 }
 
 var songs []common.Song
@@ -64,7 +65,7 @@ func loadFile(path string, de fs.DirEntry, err error) error {
   }
   song[common.PathKey] = path
   translateKeys(song)
-  // Add sort keys.
+  addSortKeys(song)
   song[common.FlagsKey] = ""
   checkForMissingKeys(song)
   songs = append(songs, song)
@@ -103,7 +104,41 @@ func translateKeys(song common.Song) {
 }
 
 func addSortKeys(song common.Song) {
+  addSortKey(song, common.ArtistKey, common.ArtistSortKey)
+  addSortKey(song, common.AlbumKey, common.AlbumSortKey)
+}
 
+func addSortKey(song common.Song, pureKey string, sortKey string) {
+  if _, present := song[sortKey]; !present {
+    if vp, purePresent := song[pureKey]; purePresent {
+      song[sortKey] = getSortValue(vp)
+    } else {
+      // If we don't have the pure key, we've got problems.
+      log.Fatalf("no key '%s' for '%s'\n", pureKey, song[common.PathKey])
+    }
+  }
+}
+
+func getSortValue(pureValue string) string {
+  if strings.HasPrefix(pureValue, "A ") {
+    return pureValue[2:]
+  }
+  if strings.HasPrefix(pureValue, "a ") {
+    return pureValue[2:]
+  }
+  if strings.HasPrefix(pureValue, "An ") {
+    return pureValue[3:]
+  }
+  if strings.HasPrefix(pureValue, "an ") {
+    return pureValue[3:]
+  }
+  if strings.HasPrefix(pureValue, "The ") {
+    return pureValue[4:]
+  }
+  if strings.HasPrefix(pureValue, "the ") {
+    return pureValue[4:]
+  }
+  return pureValue
 }
 
 func checkForMissingKeys(song common.Song) {
