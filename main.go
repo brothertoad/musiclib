@@ -10,6 +10,8 @@ import (
 // Program for maintaining the music library database.  First non-option argument is a command.
 // Code for commands is in command directory.
 
+// Commands: create, update (alias is refresh), serve, encode, mp3 (perhaps part of encode?)
+
 func main() {
   app := &cli.App {
     Name: "musiclib",
