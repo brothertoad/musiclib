@@ -3,6 +3,7 @@ id serial primary key,
 name varchar(100),
 sortName varchar(100)
 );
+alter sequence artists_id_seq restart with 100000;
 
 create table albums (
 id serial primary key,
@@ -10,6 +11,7 @@ artist integer references artists on delete cascade,
 name varchar(100),
 sortName varchar(100)
 );
+alter sequence albums_id_seq restart with 200000;
 
 create table songs (
 id serial primary key,
@@ -29,3 +31,4 @@ is_encoded boolean default false,
 md5 varchar(40),
 encoded_md5 varchar(40)
 );
+alter sequence songs_id_seq restart with 300000;
