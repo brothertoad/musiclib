@@ -72,7 +72,16 @@ func doCreate(c *cli.Context) error {
   musicDirLength = len(config.MusicDir)
   hasher = md5.New()
   songMaps = make([]common.SongMap, 0, 5000)
-  filepath.WalkDir(config.MusicDir, loadFile)
+
+  // If the load flag was specified, load from a file, rather than walking
+  // through the entire music directory.
+  if len(c.String(loadFlag)) > 0 {
+    loadSongs(c.String(loadFlag))
+  } else {
+    filepath.WalkDir(config.MusicDir, loadFile)
+  }
+
+  // Save if the save flag was specified.
   if len(c.String(saveFlag)) > 0 {
     fmt.Printf("Saving yaml in '%s'\n", c.String(saveFlag))
     data, err := yaml.Marshal(&songMaps)
@@ -80,8 +89,17 @@ func doCreate(c *cli.Context) error {
     err = ioutil.WriteFile(c.String(saveFlag), data, 0644)
     checkError(err)
   }
+
   fmt.Printf("Found %d songs.\n", len(songMaps))
   return nil
+}
+
+func loadSongs(path string) {
+  // logic came from https://zetcode.com/golang/yaml/
+  yfile, err := ioutil.ReadFile(path)
+  checkError(err)
+  err2 := yaml.Unmarshal(yfile, &songMaps)
+  checkError(err2)
 }
 
 func loadFile(path string, de fs.DirEntry, err error) error {
