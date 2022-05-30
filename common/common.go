@@ -16,7 +16,7 @@ const EncodedExtensionKey = "encodedExtension"
 const IsEncodedKey = "isEncoded"
 const FlagsKey = "flags"
 const Md5Key = "md5"
-const EncodedMd5Key = "encodedMd5"
+const EncodedSourceMd5Key = "encodedSourceMd5"
 
 const EncodeFlag = "e"
 const PlayerFlag = "p"
