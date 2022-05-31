@@ -11,6 +11,7 @@ import (
   "log"
   "os"
   "path/filepath"
+  "sort"
   "strings"
   "github.com/urfave/cli/v2"
   "gopkg.in/yaml.v3"
@@ -58,7 +59,7 @@ var requiredKeys = []string {
   common.FlagsKey, common.DurationKey, common.Md5Key,
 }
 
-var songMaps []common.SongMap
+var songMaps common.SongMapSlice
 var musicDirLength int
 var hasher hash.Hash
 
@@ -71,7 +72,7 @@ func doCreate(c *cli.Context) error {
   // save the length, as we need it to remove the prefix of each file
   musicDirLength = len(config.MusicDir)
   hasher = md5.New()
-  songMaps = make([]common.SongMap, 0, 5000)
+  songMaps = make(common.SongMapSlice, 0, 5000)
 
   // If the load flag was specified, load from a file, rather than walking
   // through the entire music directory.
@@ -79,6 +80,7 @@ func doCreate(c *cli.Context) error {
     loadSongs(c.String(loadFlag))
   } else {
     filepath.WalkDir(config.MusicDir, loadFile)
+    sort.Sort(songMaps)
   }
 
   // Save if the save flag was specified.
@@ -91,6 +93,7 @@ func doCreate(c *cli.Context) error {
   }
 
   fmt.Printf("Found %d songs.\n", len(songMaps))
+  _ = songMapsToArtistMap(songMaps)
   return nil
 }
 
