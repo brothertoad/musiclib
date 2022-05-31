@@ -19,7 +19,5 @@ const Md5Key = "md5"
 const EncodedSourceMd5Key = "encodedSourceMd5"
 
 const EncodeFlag = "e"
-const PlayerFlag = "p"
-const CarFlag = "c"
 
 type SongMap map[string]string
