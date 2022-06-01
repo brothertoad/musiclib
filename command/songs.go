@@ -15,7 +15,7 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
       var artist common.Artist
       artist.Name = name
       artist.SortName = sm[common.ArtistSortKey]
-      artist.Albums = make(map[string]common.Album)
+      artist.Albums = make(map[string]*common.Album)
       artists[name] = artist
     }
   }
@@ -27,10 +27,11 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
     artist := artists[name]
     albumTitle := sm[common.AlbumKey]
     if _, present := artist.Albums[albumTitle]; !present {
-      var album common.Album
+      // var album common.Album
+      album := new(common.Album)
       album.Title = albumTitle
       album.SortTitle = sm[common.AlbumSortKey]
-      album.Songs = make([]common.Song, 0)
+      album.Songs = make([]*common.Song, 0, 100)
       artist.Albums[albumTitle] = album
       numAlbums++
     }
@@ -42,7 +43,8 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
     artist := artists[name]
     albumTitle := sm[common.AlbumKey]
     album := artist.Albums[albumTitle]
-    var song common.Song
+    // var song common.Song
+    song := new(common.Song)
     song.Title = sm[common.TitleKey]
     song.TrackNumber, _ = strconv.Atoi(sm[common.TrackNumberKey])
     song.DiscNumber, _ = strconv.Atoi(sm[common.DiscNumberKey])

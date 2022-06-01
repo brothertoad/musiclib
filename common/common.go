@@ -56,21 +56,21 @@ type Song struct {
   BasePath string
   IsEncoded bool
   Flags string
-  Sublibs string
   Md5 string
   EncodedSourceMd5 string
+  Sublibs string
 }
 
 type Album struct {
   Serial int
   Title string
   SortTitle string
-  Songs []Song
+  Songs []*Song
 }
 
 type Artist struct {
   Serial int
   Name string
   SortName string
-  Albums map[string]Album
+  Albums map[string]*Album
 }
