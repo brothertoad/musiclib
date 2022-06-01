@@ -8,8 +8,8 @@ alter sequence artists_id_seq restart with 100001;
 create table albums (
 id serial primary key,
 artist integer references artists on delete cascade,
-name varchar(100),
-sortName varchar(100)
+title varchar(100),
+sortTitle varchar(100)
 );
 alter sequence albums_id_seq restart with 200001;
 

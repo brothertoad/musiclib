@@ -11,12 +11,26 @@ func addArtistMapToDb(m map[string]common.Artist) {
   checkError(err)
   defer db.Close()
 
-  // Insert the artists.
-  stmt, err := db.Prepare("insert into artists(name, sortName) values ($1, $2) returning id")
-  defer stmt.Close()
-  for _, v := range(m) {
+  artistStmt, artistErr := db.Prepare("insert into artists(name, sortName) values ($1, $2) returning id")
+  checkError(artistErr)
+  defer artistStmt.Close()
+
+  albumStmt, albumErr := db.Prepare("insert into albums(artist, title, sortTitle) values ($1, $2, $3) returning id")
+  checkError(albumErr)
+  defer albumStmt.Close()
+
+  songStmt, songErr := db.Prepare("insert into songs(title, sortTitle) values ($1, $2) returning id")
+  checkError(songErr)
+  defer songStmt.Close()
+
+  for _, artist := range(m) {
     var artistId int
-    err := stmt.QueryRow(v.Name, v.SortName).Scan(&artistId)
+    err := artistStmt.QueryRow(artist.Name, artist.SortName).Scan(&artistId)
     checkError(err)
+    for _, album := range(artist.Albums) {
+      var albumId int
+      err := albumStmt.QueryRow(artistId, album.Title, album.SortTitle).Scan(&albumId)
+      checkError(err)
+    }
   }
 }
