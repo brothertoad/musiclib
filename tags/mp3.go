@@ -107,7 +107,9 @@ func mp3ParseID3(buffer []byte, m common.SongMap) int {
         // String is UTF-16, with BOM
         value = stringFromUTF16(buffer[j+11:j+size+10])
       }
-      m[key] = value
+      // Some tags have a zero byte at the end to make the string an even length.
+      // We need to remove it.
+      m[key] = strings.TrimSuffix(value, "\000")
     }
     j += size + 10
   }
