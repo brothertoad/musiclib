@@ -2,7 +2,6 @@ package command
 
 import (
   "database/sql"
-  "fmt"
   _ "github.com/jackc/pgx/v4/stdlib"
   "github.com/brothertoad/musiclib/common"
 )
@@ -16,10 +15,8 @@ func addArtistMapToDb(m map[string]common.Artist) {
   stmt, err := db.Prepare("insert into artists(name, sortName) values ($1, $2) returning id")
   defer stmt.Close()
   for _, v := range(m) {
-    fmt.Printf("Attempting to insert artist with name %s and sortName %s\n", v.Name, v.SortName)
-    res, err := stmt.Exec(v.Name, v.SortName)
+    var artistId int
+    err := stmt.QueryRow(v.Name, v.SortName).Scan(&artistId)
     checkError(err)
-    lastId, _ := res.LastInsertId()
-    fmt.Printf("Artist ID is %d\n", lastId)
   }
 }
