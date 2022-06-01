@@ -13,6 +13,7 @@ var config struct {
   EncodedDir string `yaml:"encodedDir"`
   Mp3Dir string `yaml:"mp3Dir"`
   EncodeCommand []string `yaml:"encodeCommand"`
+  DbUrl string `yaml:"dbUrl"`
 }
 
 func LoadConfig(c *cli.Context) error {

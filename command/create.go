@@ -93,7 +93,7 @@ func doCreate(c *cli.Context) error {
   }
 
   fmt.Printf("Found %d songs.\n", len(songMaps))
-  _ = songMapsToArtistMap(songMaps)
+  addArtistMapToDb(songMapsToArtistMap(songMaps))
   return nil
 }
 
