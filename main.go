@@ -10,7 +10,8 @@ import (
 // Program for maintaining the music library database.  First non-option argument is a command.
 // Code for commands is in command directory.
 
-// Commands: create, update (alias is refresh), serve, encode, mp3 (perhaps part of encode?)
+// Commands: create, update (alias is refresh), serve, encode, mp3 (perhaps part of encode?), sublib
+// Perhaps allow sublib by extension, so don't need separate mp3 command.
 
 func main() {
   app := &cli.App {
@@ -22,6 +23,7 @@ func main() {
     },
     Commands: []*cli.Command {
       &command.CreateCommand,
+      &command.RefreshCommand,
     },
     Before: command.LoadConfig,
   }

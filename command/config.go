@@ -26,5 +26,9 @@ func LoadConfig(c *cli.Context) error {
   checkError(err)
   err = yaml.Unmarshal(b, &config)
   checkError(err)
+  if len(config.MusicDir) == 0 {
+    log.Fatalln("No top level directory specified in configuration.")
+  }
+  dirMustExist(config.MusicDir)
   return nil
 }
