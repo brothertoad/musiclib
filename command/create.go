@@ -32,34 +32,6 @@ var CreateCommand = cli.Command {
   },
 }
 
-var keyTranslations = map[string]string {
-  "\xa9nam": common.TitleKey,
-  "\xa9ART" : common.ArtistKey,
-  "\xa9alb" : common.AlbumKey,
-  "soar" : common.ArtistSortKey,
-  "soal" : common.AlbumSortKey,
-  "ALBUM" : common.AlbumKey,
-  "ARTIST" : common.ArtistKey,
-  "TITLE" : common.TitleKey,
-  "trkn" : common.TrackNumberKey,
-  "disk" : common.DiscNumberKey,
-  "tracknumber" : common.TrackNumberKey,
-  "TRACKNUMBER" : common.TrackNumberKey,
-  "DISKNUMBER" : common.DiscNumberKey,
-  "TIT2" : common.TitleKey,
-  "TPE1" : common.ArtistKey,
-  "TALB" : common.AlbumKey,
-}
-
-// In addition to being required, these are the only keys we save.
-var requiredKeys = []string {
-  common.TitleKey, common.ArtistKey, common.AlbumKey, common.TrackNumberKey, common.DiscNumberKey,
-  common.ArtistSortKey, common.AlbumSortKey, common.FullPathKey, common.BasePathKey,
-  common.MimeKey, common.ExtensionKey, common.EncodedExtensionKey, common.IsEncodedKey,
-  common.FlagsKey, common.DurationKey, common.Md5Key,
-}
-
-// var songMaps common.SongMapSlice
 var musicDirLength int
 var hasher hash.Hash
 

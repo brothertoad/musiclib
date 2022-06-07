@@ -15,6 +15,39 @@ import (
   "github.com/brothertoad/musiclib/tags"
 )
 
+var keyTranslations = map[string]string {
+  "\xa9nam": common.TitleKey,
+  "\xa9ART" : common.ArtistKey,
+  "\xa9alb" : common.AlbumKey,
+  "soar" : common.ArtistSortKey,
+  "soal" : common.AlbumSortKey,
+  "ALBUM" : common.AlbumKey,
+  "ARTIST" : common.ArtistKey,
+  "TITLE" : common.TitleKey,
+  "trkn" : common.TrackNumberKey,
+  "disk" : common.DiscNumberKey,
+  "tracknumber" : common.TrackNumberKey,
+  "TRACKNUMBER" : common.TrackNumberKey,
+  "DISKNUMBER" : common.DiscNumberKey,
+  "TIT2" : common.TitleKey,
+  "TPE1" : common.ArtistKey,
+  "TALB" : common.AlbumKey,
+}
+
+// In addition to being required, these are the only keys we save in the yaml file.
+var requiredKeys = []string {
+  common.TitleKey, common.ArtistKey, common.AlbumKey, common.TrackNumberKey, common.DiscNumberKey,
+  common.ArtistSortKey, common.AlbumSortKey, common.FullPathKey, common.BasePathKey,
+  common.MimeKey, common.ExtensionKey, common.EncodedExtensionKey, common.IsEncodedKey,
+  common.FlagsKey, common.DurationKey, common.Md5Key,
+}
+
+////////////////////////////////////////////////////////////////////////
+//
+// Logic for reading the library.
+//
+////////////////////////////////////////////////////////////////////////
+
 func loadSongMapSliceFromMusicDir() common.SongMapSlice {
   songMaps := make(common.SongMapSlice, 0, 5000)
   filepath.WalkDir(config.MusicDir, func(path string, de fs.DirEntry, err error) error {
@@ -141,6 +174,13 @@ func filterKeys(song common.SongMap) common.SongMap {
   }
   return filtered;
 }
+
+////////////////////////////////////////////////////////////////////////
+//
+// Logic for converting a SongMapSlice to the tree-structure containing
+// artists, albums and songs.
+//
+////////////////////////////////////////////////////////////////////////
 
 func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist {
   artists := make(map[string]common.Artist)
