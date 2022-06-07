@@ -1,13 +1,16 @@
 package command
 
 import (
+  "crypto/md5"
   "fmt"
+  "hash"
   "log"
   "io/ioutil"
   "github.com/urfave/cli/v2"
   "gopkg.in/yaml.v3"
 )
 
+// Configuration.
 var config struct {
   MusicDir string `yaml:"musicDir"`
   EncodedDir string `yaml:"encodedDir"`
@@ -16,7 +19,12 @@ var config struct {
   DbUrl string `yaml:"dbUrl"`
 }
 
-func LoadConfig(c *cli.Context) error {
+// Other global data.
+var musicDirLength int
+var hasher hash.Hash
+
+func Init(c *cli.Context) error {
+  // Load the config file.
   path := c.String("config")
   if !fileExists(path) {
     log.Fatalf("Config file '%s' does not exist.\n", path)
@@ -26,9 +34,13 @@ func LoadConfig(c *cli.Context) error {
   checkError(err)
   err = yaml.Unmarshal(b, &config)
   checkError(err)
+  // Verify our music directory is valid.
   if len(config.MusicDir) == 0 {
     log.Fatalln("No top level directory specified in configuration.")
   }
   dirMustExist(config.MusicDir)
+  // Initialize the other global data.
+  musicDirLength = len(config.MusicDir)
+  hasher = md5.New()
   return nil
 }

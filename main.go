@@ -25,7 +25,7 @@ func main() {
       &command.CreateCommand,
       &command.RefreshCommand,
     },
-    Before: command.LoadConfig,
+    Before: command.Init,
   }
   app.Run(os.Args)
 }

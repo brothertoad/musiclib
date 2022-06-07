@@ -1,10 +1,9 @@
 package command
 
 import (
-  "crypto/md5"
   _ "encoding/hex"
   "fmt"
-  "hash"
+  _ "hash"
   _ "io"
   "io/fs"
   "io/ioutil"
@@ -32,14 +31,9 @@ var CreateCommand = cli.Command {
   },
 }
 
-var musicDirLength int
-var hasher hash.Hash
-
 func doCreate(c *cli.Context) error {
   fmt.Printf("Creating database from directory %s...\n", config.MusicDir)
   // save the length, as we need it to remove the prefix of each file
-  musicDirLength = len(config.MusicDir)
-  hasher = md5.New()
   songMaps := make(common.SongMapSlice, 0, 5000)
 
   // If the load flag was specified, load from a file, rather than walking
