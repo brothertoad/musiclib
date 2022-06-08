@@ -179,8 +179,8 @@ func filterKeys(song common.SongMap) common.SongMap {
 
 ////////////////////////////////////////////////////////////////////////
 //
-// Logic for converting a SongMapSlice to the tree-structure containing
-// artists, albums and songs.
+// Logic for converting a SongMapSlice to or from the tree-structure
+// containing artists, albums and songs.
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -237,6 +237,11 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
     album.Songs = append(album.Songs, song)
   }
   return artists
+}
+
+func artistMapToSongMaps(artistMap map[string]common.Artist) common.SongMapSlice {
+  songMaps := make(common.SongMapSlice, 0, 5000)
+  return songMaps
 }
 
 ////////////////////////////////////////////////////////////////////////

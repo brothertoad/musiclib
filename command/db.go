@@ -56,20 +56,55 @@ func readArtistMapFromDb() map[string]common.Artist {
   checkError(artistErr)
   defer artistStmt.Close()
 
-  artistRows, artistErr := artistStmt.Query()
-  checkError(artistErr)
+  albumStmt, albumErr := db.Prepare("select id, title, sortTitle from albums where artist = $1")
+  checkError(albumErr)
+  defer albumStmt.Close()
+
+  songStmt, songErr := db.Prepare(`select id, title, trackNum, discNum, duration,
+    flags, full_path, base_path, mime, extension, encoded_extension,
+    is_encoded, md5, encoded_md5, sublibs from songs where album = $1`)
+  checkError(songErr)
+  defer songStmt.Close()
+
+  artistRows, artistQueryErr := artistStmt.Query()
+  checkError(artistQueryErr)
+
+  totalArtists := 0
+  totalAlbums := 0
+  totalSongs := 0
 
   artistMap := make(map[string]common.Artist, 1000)
   for artistRows.Next() {
-    var artistId int
-    var artistName, artistSortName string
-    err := artistRows.Scan(&artistId, &artistName, &artistSortName)
-    checkError(err)
     var artist common.Artist
-    artist.Serial = artistId
-    artist.Name = artistName
-    artist.SortName = artistSortName
-    artistMap[artistName] = artist
+    err := artistRows.Scan(&artist.Serial, &artist.Name, &artist.SortName)
+    checkError(err)
+    artist.Albums = make(map[string]*common.Album)
+    artistMap[artist.Name] = artist
+    totalArtists++
+
+    albumRows, albumErr := albumStmt.Query(artist.Serial)
+    checkError(albumErr)
+    for albumRows.Next() {
+      album := new(common.Album)
+      err := albumRows.Scan(&album.Serial, &album.Title, &album.SortTitle)
+      checkError(err)
+      album.Songs = make([]*common.Song, 0, 100)
+      artist.Albums[album.Title] = album
+      totalAlbums++
+
+      songRows, songErr := songStmt.Query(album.Serial)
+      checkError(songErr)
+      for songRows.Next() {
+        song := new(common.Song)
+        err := songRows.Scan(&song.Serial, &song.Title, &song.TrackNumber,
+          &song.DiscNumber, &song.Duration, &song.Flags, &song.FullPath, &song.BasePath,
+          &song.Mime, &song.Extension, &song.EncodedExtension, &song.IsEncoded,
+          &song.Md5, &song.EncodedSourceMd5, &song.Sublibs)
+        checkError(err)
+        album.Songs = append(album.Songs, song)
+        totalSongs++
+      }
+    }
   }
   return artistMap
 }
