@@ -62,7 +62,7 @@ func readArtistMapFromDb() map[string]common.Artist {
 
   songStmt, songErr := db.Prepare(`select id, title, trackNum, discNum, duration,
     flags, full_path, base_path, mime, extension, encoded_extension,
-    is_encoded, md5, encoded_md5, sublibs from songs where album = $1`)
+    is_encoded, md5, encoded_source_md5, sublibs from songs where album = $1`)
   checkError(songErr)
   defer songStmt.Close()
 

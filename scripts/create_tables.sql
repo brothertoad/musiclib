@@ -29,7 +29,7 @@ extension varchar(8),
 encoded_extension varchar(8),
 is_encoded boolean default false,
 md5 varchar(40),
-encoded_md5 varchar(40) default '',
+encoded_source_md5 varchar(40) default '',
 sublibs varchar(256) default ''
 );
 alter sequence songs_id_seq restart with 300001;
