@@ -195,3 +195,32 @@ func deleteSongsFromDb(songMaps map[string]common.SongMap) {
     checkError(err)
   }
 }
+
+// Delete any albums/artists that don't have any songs.
+func deleteEmptyParents() {
+  db, err := sql.Open("pgx", config.DbUrl)
+  checkError(err)
+  defer db.Close()
+
+  albumQueryStmt, albumQueryErr := db.Prepare("select id from albums")
+  checkError(albumQueryErr)
+  defer albumQueryStmt.Close()
+
+  songQueryStmt, songQueryErr := db.Prepare("select count(*) from songs where album = $1")
+  checkError(songQueryErr)
+  defer songQueryStmt.Close()
+
+  albumRows, err := albumQueryStmt.Query()
+  checkError(err)
+  for albumRows.Next() {
+    var albumId int
+    err := albumRows.Scan(&albumId)
+    checkError(err)
+    var songCount int
+    err = songQueryStmt.QueryRow(albumId).Scan(&songCount)
+    checkError(err)
+    if songCount == 0 {
+      fmt.Printf("Need to delete album %d\n", albumId)
+    }
+  }
+}
