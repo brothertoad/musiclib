@@ -2,7 +2,6 @@ package command
 
 import (
   "database/sql"
-  "fmt"
   "strconv"
   _ "github.com/jackc/pgx/v4/stdlib"
   "github.com/brothertoad/musiclib/common"
@@ -148,10 +147,8 @@ func addSongsToDb(songMaps map[string]common.SongMap) {
     }
     if err != nil {
       // err must be ErrNoRows, so the artist needs to be added.
-      fmt.Printf("Need to add artist %s to database\n", songMap[common.ArtistKey])
       err := artistInsertStmt.QueryRow(songMap[common.ArtistKey], songMap[common.ArtistSortKey]).Scan(&artistId)
       checkError(err)
-      fmt.Printf("Added artist %s, id is %d\n", songMap[common.ArtistKey], artistId)
     }
     var albumId int
     err = albumQueryStmt.QueryRow(artistId, songMap[common.AlbumKey]).Scan(&albumId)
