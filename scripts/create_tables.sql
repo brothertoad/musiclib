@@ -1,20 +1,18 @@
 create table artists (
-id serial primary key,
+id int generated always as identity (start with 10001) primary key,
 name text,
 sortName text
 );
-alter sequence artists_id_seq restart with 100001;
 
 create table albums (
-id serial primary key,
+id int generated always as identity (start with 20001) primary key,
 artist integer references artists on delete cascade,
 title text,
 sortTitle text
 );
-alter sequence albums_id_seq restart with 200001;
 
 create table songs (
-id serial primary key,
+id int generated always as identity (start with 30001) primary key,
 album integer references albums on delete cascade,
 title text,
 sortTitle text,
@@ -32,4 +30,3 @@ md5 varchar(40),
 encoded_source_md5 varchar(40) default '',
 sublibs text default ''
 );
-alter sequence songs_id_seq restart with 300001;
