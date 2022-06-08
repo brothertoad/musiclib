@@ -251,7 +251,7 @@ func artistMapToSongMaps(artistMap map[string]common.Artist) common.SongMapSlice
     for _, album := range(artist.Albums) {
       for _, song := range(album.Songs) {
         songMap := make(common.SongMap, 0)
-        songMap[common.IdKey] = strconv.Itoa(song.Serial)
+        songMap[common.IdKey] = strconv.Itoa(song.Id)
         songMap[common.TitleKey] = song.Title
         songMap[common.ArtistKey] = artist.Name
         songMap[common.AlbumKey] = album.Title

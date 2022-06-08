@@ -56,7 +56,7 @@ func SortSongSlice(songs []*Song) {
 }
 
 type Song struct {
-  Serial int
+  Id int
   Title string
   TrackNumber int
   DiscNumber int
@@ -74,14 +74,14 @@ type Song struct {
 }
 
 type Album struct {
-  Serial int
+  Id int
   Title string
   SortTitle string
   Songs []*Song
 }
 
 type Artist struct {
-  Serial int
+  Id int
   Name string
   SortName string
   Albums map[string]*Album

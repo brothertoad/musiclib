@@ -31,19 +31,19 @@ func addArtistMapToDb(m map[string]common.Artist) {
     var artistId int
     err := artistStmt.QueryRow(artist.Name, artist.SortName).Scan(&artistId)
     checkError(err)
-    artist.Serial = artistId
+    artist.Id = artistId
     for _, album := range(artist.Albums) {
       var albumId int
       err := albumStmt.QueryRow(artistId, album.Title, album.SortTitle).Scan(&albumId)
       checkError(err)
-      album.Serial = albumId
+      album.Id = albumId
       for _, song := range(album.Songs) {
         var songId int
         err := songStmt.QueryRow(albumId, song.Title, song.TrackNumber, song.DiscNumber, song.Duration,
           song.Flags, song.FullPath, song.BasePath, song.Mime, song.Extension, song.EncodedExtension,
           song.IsEncoded, song.Md5).Scan(&songId)
         checkError(err)
-        song.Serial = songId
+        song.Id = songId
       }
     }
   }
@@ -78,27 +78,27 @@ func readArtistMapFromDb() map[string]common.Artist {
   artistMap := make(map[string]common.Artist, 1000)
   for artistRows.Next() {
     var artist common.Artist
-    err := artistRows.Scan(&artist.Serial, &artist.Name, &artist.SortName)
+    err := artistRows.Scan(&artist.Id, &artist.Name, &artist.SortName)
     checkError(err)
     artist.Albums = make(map[string]*common.Album)
     artistMap[artist.Name] = artist
     totalArtists++
 
-    albumRows, albumErr := albumStmt.Query(artist.Serial)
+    albumRows, albumErr := albumStmt.Query(artist.Id)
     checkError(albumErr)
     for albumRows.Next() {
       album := new(common.Album)
-      err := albumRows.Scan(&album.Serial, &album.Title, &album.SortTitle)
+      err := albumRows.Scan(&album.Id, &album.Title, &album.SortTitle)
       checkError(err)
       album.Songs = make([]*common.Song, 0, 100)
       artist.Albums[album.Title] = album
       totalAlbums++
 
-      songRows, songErr := songStmt.Query(album.Serial)
+      songRows, songErr := songStmt.Query(album.Id)
       checkError(songErr)
       for songRows.Next() {
         song := new(common.Song)
-        err := songRows.Scan(&song.Serial, &song.Title, &song.TrackNumber,
+        err := songRows.Scan(&song.Id, &song.Title, &song.TrackNumber,
           &song.DiscNumber, &song.Duration, &song.Flags, &song.FullPath, &song.BasePath,
           &song.Mime, &song.Extension, &song.EncodedExtension, &song.IsEncoded,
           &song.Md5, &song.EncodedSourceMd5, &song.Sublibs)
@@ -189,9 +189,9 @@ func deleteSongsFromDb(songMaps map[string]common.SongMap) {
   defer deleteStmt.Close()
 
   for _, songMap := range(songMaps) {
-    // Have to convert the serial value in the SongMap from a string to an int.
-    serial, _ := strconv.Atoi(songMap[common.IdKey])
-    _, err := deleteStmt.Exec(serial)
+    // Have to convert the id value in the SongMap from a string to an int.
+    id, _ := strconv.Atoi(songMap[common.IdKey])
+    _, err := deleteStmt.Exec(id)
     checkError(err)
   }
 }
