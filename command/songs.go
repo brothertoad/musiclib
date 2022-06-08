@@ -241,6 +241,31 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
 
 func artistMapToSongMaps(artistMap map[string]common.Artist) common.SongMapSlice {
   songMaps := make(common.SongMapSlice, 0, 5000)
+  for _, artist := range(artistMap) {
+    for _, album := range(artist.Albums) {
+      for _, song := range(album.Songs) {
+        songMap := make(common.SongMap, 0)
+        songMap[common.TitleKey] = song.Title
+        songMap[common.ArtistKey] = artist.Name
+        songMap[common.AlbumKey] = album.Title
+        songMap[common.TrackNumberKey] = strconv.Itoa(song.TrackNumber)
+        songMap[common.DiscNumberKey] = strconv.Itoa(song.DiscNumber)
+        songMap[common.ArtistSortKey] = artist.SortName
+        songMap[common.AlbumSortKey] = album.SortTitle
+        songMap[common.FullPathKey] = song.FullPath
+        songMap[common.BasePathKey] = song.BasePath
+        songMap[common.MimeKey] = song.Mime
+        songMap[common.ExtensionKey] = song.Extension
+        songMap[common.EncodedExtensionKey] = song.EncodedExtension
+        songMap[common.IsEncodedKey] = strconv.FormatBool(song.IsEncoded)
+        songMap[common.FlagsKey] = song.Flags
+        songMap[common.DurationKey] = song.Duration
+        songMap[common.Md5Key] = song.Md5
+        songMaps = append(songMaps, songMap)
+      }
+    }
+  }
+  sort.Sort(songMaps)
   return songMaps
 }
 

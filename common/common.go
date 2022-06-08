@@ -25,7 +25,7 @@ const EncodedSourceMd5Key = "encodedSourceMd5"
 const EncodeFlag = "e"
 
 type SongMap map[string]string
-type SongMapSlice []map[string]string
+type SongMapSlice []SongMap
 
 // functions for sorting a slice of SongMaps
 func (s SongMapSlice) Len() int { return len(s) }

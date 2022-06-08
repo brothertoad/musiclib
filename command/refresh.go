@@ -23,29 +23,7 @@ var RefreshCommand = cli.Command {
 
 func doRefresh(c *cli.Context) error {
   diskSongMaps := loadSongMapSliceFromMusicDir()
-  dbArtistMap := readArtistMapFromDb()
-  fmt.Printf("%d songs on disk, %d artists in database\n", len(diskSongMaps), len(dbArtistMap))
+  dbSongMaps := artistMapToSongMaps(readArtistMapFromDb())
+  fmt.Printf("%d songs on disk, %d songs in database\n", len(diskSongMaps), len(dbSongMaps))
   return nil
 }
-
-/*
-
-var songMaps common.SongMapSlice
-var musicDirLength int
-var hasher hash.Hash
-
-func doRefresh(c *cli.Context) error {
-  fmt.Printf("Refreshing database from directory %s...\n", config.MusicDir)
-  // save the length, as we need it to remove the prefix of each file
-  musicDirLength = len(config.MusicDir)
-  hasher = md5.New()
-  songMaps = make(common.SongMapSlice, 0, 5000)
-
-  filepath.WalkDir(config.MusicDir, loadFile)
-  sort.Sort(songMaps)
-
-  fmt.Printf("Found %d songs.\n", len(songMaps))
-  addArtistMapToDb(songMapsToArtistMap(songMaps))
-  return nil
-}
-*/
