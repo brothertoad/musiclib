@@ -2,7 +2,6 @@ package command
 
 import (
   "crypto/md5"
-  "fmt"
   "hash"
   "log"
   "io/ioutil"
@@ -29,7 +28,6 @@ func Init(c *cli.Context) error {
   if !fileExists(path) {
     log.Fatalf("Config file '%s' does not exist.\n", path)
   }
-  fmt.Printf("Loading configuration from %s...\n", path)
   b, err := ioutil.ReadFile(path)
   checkError(err)
   err = yaml.Unmarshal(b, &config)

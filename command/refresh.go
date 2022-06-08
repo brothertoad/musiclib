@@ -23,12 +23,11 @@ var RefreshCommand = cli.Command {
 func doRefresh(c *cli.Context) error {
   diskSongMaps := loadSongMapSliceFromMusicDir()
   dbSongMaps := artistMapToSongMaps(readArtistMapFromDb())
-  fmt.Printf("%d songs on disk, %d songs in database\n", len(diskSongMaps), len(dbSongMaps))
   diskMd5s := songMapSliceToMd5Map(diskSongMaps)
   dbMd5s := songMapSliceToMd5Map(dbSongMaps)
   added := findMissing(diskMd5s, dbMd5s)
   deleted := findMissing(dbMd5s, diskMd5s)
-  fmt.Printf("%d added, %d deleted\n", len(added), len(deleted))
+  fmt.Printf("%d songs added, %d songs deleted\n", len(added), len(deleted))
   deleteSongsFromDb(deleted)
   addSongsToDb(added)
   deleteEmptyParents()

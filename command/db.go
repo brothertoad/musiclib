@@ -160,10 +160,8 @@ func addSongsToDb(songMaps map[string]common.SongMap) {
     }
     if err != nil {
       // err must be ErrNoRows, so the album needs to be added.
-      fmt.Printf("Need to add album %s by artist %d to database\n", songMap[common.AlbumKey], artistId)
       err := albumInsertStmt.QueryRow(artistId, songMap[common.AlbumKey], songMap[common.AlbumSortKey]).Scan(&albumId)
       checkError(err)
-      fmt.Printf("Added album %s, id is %d\n", songMap[common.AlbumKey], albumId)
     }
     // Now we can add the song.
     var songId int
@@ -175,7 +173,6 @@ func addSongsToDb(songMaps map[string]common.SongMap) {
       songMap[common.BasePathKey], songMap[common.MimeKey], songMap[common.ExtensionKey],
       songMap[common.EncodedExtensionKey], isEncoded, songMap[common.Md5Key]).Scan(&songId)
     checkError(err)
-    fmt.Printf("Added song %s, id is %d\n", songMap[common.TitleKey], songId)
   }
 }
 
@@ -221,8 +218,47 @@ func deleteEmptyParents() {
     err = songQueryStmt.QueryRow(albumId).Scan(&songCount)
     checkError(err)
     if songCount == 0 {
-      fmt.Printf("Need to delete album %d\n", albumId)
       albumsToDelete = append(albumsToDelete, albumId)
     }
+  }
+  deleteIdsFromTable(db, albumsToDelete, "albums")
+  deleteEmptyArtists(db)
+}
+
+func deleteEmptyArtists(db *sql.DB) {
+  artistQueryStmt, err := db.Prepare("select id from artists")
+  checkError(err)
+  defer artistQueryStmt.Close()
+  albumQueryStmt, err := db.Prepare("select count(*) from albums where artist = $1")
+  checkError(err)
+  defer albumQueryStmt.Close();
+
+  artistRows, err := artistQueryStmt.Query()
+  checkError(err)
+  artistsToDelete := make([]int, 0)
+  for artistRows.Next() {
+    var artistId int
+    err = artistRows.Scan(&artistId)
+    checkError(err)
+    var albumCount int
+    err = albumQueryStmt.QueryRow(artistId).Scan(&albumCount)
+    checkError(err)
+    if albumCount == 0 {
+      artistsToDelete = append(artistsToDelete, artistId)
+    }
+  }
+  deleteIdsFromTable(db, artistsToDelete, "artists")
+}
+
+func deleteIdsFromTable(db *sql.DB, ids []int, table string) {
+  if len(ids) == 0 {
+    return
+  }
+  stmt, err := db.Prepare("delete from " + table + " where id = $1")
+  checkError(err)
+  defer stmt.Close()
+  for _, id := range(ids) {
+    _, err := stmt.Exec(id)
+    checkError(err)
   }
 }
