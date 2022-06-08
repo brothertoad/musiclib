@@ -1,6 +1,7 @@
 package common
 
 import (
+  "sort"
   "strconv"
 )
 
@@ -42,6 +43,16 @@ func (s SongMapSlice) Less(i, j int) bool {
   return tni < tnj
 }
 func (s SongMapSlice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+
+// function for sorting a slice of Songs
+func SortSongSlice(songs []*Song) {
+  sort.Slice(songs, func(i, j int) bool {
+    if songs[i].DiscNumber < songs[j].DiscNumber {
+      return true
+    }
+    return songs[i].TrackNumber < songs[j].TrackNumber
+  })
+}
 
 type Song struct {
   Serial int

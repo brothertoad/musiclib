@@ -236,6 +236,12 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
     song.EncodedSourceMd5 = sm[common.EncodedSourceMd5Key]
     album.Songs = append(album.Songs, song)
   }
+  // Sort the song slice for each album.
+  for _, artist := range(artists) {
+    for _, album := range(artist.Albums) {
+      common.SortSongSlice(album.Songs)
+    }
+  }
   return artists
 }
 
