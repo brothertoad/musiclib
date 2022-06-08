@@ -190,7 +190,7 @@ func deleteSongsFromDb(songMaps map[string]common.SongMap) {
 
   for _, songMap := range(songMaps) {
     // Have to convert the serial value in the SongMap from a string to an int.
-    serial, _ := strconv.Atoi(songMap[common.SerialKey])
+    serial, _ := strconv.Atoi(songMap[common.IdKey])
     _, err := deleteStmt.Exec(serial)
     checkError(err)
   }
