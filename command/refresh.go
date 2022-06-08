@@ -29,6 +29,8 @@ func doRefresh(c *cli.Context) error {
   added := findMissing(diskMd5s, dbMd5s)
   deleted := findMissing(dbMd5s, diskMd5s)
   fmt.Printf("%d added, %d deleted\n", len(added), len(deleted))
+  deleteSongsFromDb(deleted)
+  addSongsToDb(added)
   return nil
 }
 

@@ -2,6 +2,8 @@ package command
 
 import (
   "database/sql"
+  "fmt"
+  "strconv"
   _ "github.com/jackc/pgx/v4/stdlib"
   "github.com/brothertoad/musiclib/common"
 )
@@ -107,4 +109,89 @@ func readArtistMapFromDb() map[string]common.Artist {
     }
   }
   return artistMap
+}
+
+func addSongsToDb(songMaps map[string]common.SongMap) {
+  db, err := sql.Open("pgx", config.DbUrl)
+  checkError(err)
+  defer db.Close()
+
+  artistQueryStmt, artistQueryErr := db.Prepare("select id from artists where name = $1")
+  checkError(artistQueryErr)
+  defer artistQueryStmt.Close()
+
+  artistInsertStmt, artistInsertErr := db.Prepare("insert into artists(name, sortName) values ($1, $2) returning id")
+  checkError(artistInsertErr)
+  defer artistInsertStmt.Close()
+
+  albumQueryStmt, albumQueryErr := db.Prepare("select id from albums where artist = $1 and title = $2")
+  checkError(albumQueryErr)
+  defer albumQueryStmt.Close()
+
+  albumInsertStmt, albumInsertErr := db.Prepare("insert into albums(artist, title, sortTitle) values ($1, $2, $3) returning id")
+  checkError(albumInsertErr)
+  defer albumInsertStmt.Close()
+
+  songInsertStmt, songInsertErr := db.Prepare(`insert into songs(album, title, trackNum, discNum, duration,
+    flags, full_path, base_path, mime, extension, encoded_extension, is_encoded, md5)
+    values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) returning id`)
+  checkError(songInsertErr)
+  defer songInsertStmt.Close()
+
+  // For each song, we need to check to see if the artist and album already
+  // exist.  If not, we need to add them.
+  for _, songMap := range(songMaps) {
+    var artistId int
+    err := artistQueryStmt.QueryRow(songMap[common.ArtistKey]).Scan(&artistId)
+    if err != nil && err != sql.ErrNoRows {
+      checkError(err)
+    }
+    if err != nil {
+      // err must be ErrNoRows, so the artist needs to be added.
+      fmt.Printf("Need to add artist %s to database\n", songMap[common.ArtistKey])
+      err := artistInsertStmt.QueryRow(songMap[common.ArtistKey], songMap[common.ArtistSortKey]).Scan(&artistId)
+      checkError(err)
+      fmt.Printf("Added artist %s, id is %d\n", songMap[common.ArtistKey], artistId)
+    }
+    var albumId int
+    err = albumQueryStmt.QueryRow(artistId, songMap[common.AlbumKey]).Scan(&albumId)
+    if err != nil && err != sql.ErrNoRows {
+      checkError(err)
+    }
+    if err != nil {
+      // err must be ErrNoRows, so the album needs to be added.
+      fmt.Printf("Need to add album %s by artist %d to database\n", songMap[common.AlbumKey], artistId)
+      err := albumInsertStmt.QueryRow(artistId, songMap[common.AlbumKey], songMap[common.AlbumSortKey]).Scan(&albumId)
+      checkError(err)
+      fmt.Printf("Added album %s, id is %d\n", songMap[common.AlbumKey], albumId)
+    }
+    // Now we can add the song.
+    var songId int
+    trackNumber, _ := strconv.Atoi(songMap[common.TrackNumberKey])
+    discNumber, _ := strconv.Atoi(songMap[common.DiscNumberKey])
+    isEncoded, _ := strconv.ParseBool(songMap[common.IsEncodedKey])
+    err = songInsertStmt.QueryRow(albumId, songMap[common.TitleKey], trackNumber, discNumber,
+      songMap[common.DurationKey], songMap[common.FlagsKey], songMap[common.FullPathKey],
+      songMap[common.BasePathKey], songMap[common.MimeKey], songMap[common.ExtensionKey],
+      songMap[common.EncodedExtensionKey], isEncoded, songMap[common.Md5Key]).Scan(&songId)
+    checkError(err)
+    fmt.Printf("Added song %s, id is %d\n", songMap[common.TitleKey], songId)
+  }
+}
+
+func deleteSongsFromDb(songMaps map[string]common.SongMap) {
+  db, err := sql.Open("pgx", config.DbUrl)
+  checkError(err)
+  defer db.Close()
+
+  deleteStmt, deleteErr := db.Prepare("delete from songs where id = $1")
+  checkError(deleteErr)
+  defer deleteStmt.Close()
+
+  for _, songMap := range(songMaps) {
+    // Have to convert the serial value in the SongMap from a string to an int.
+    serial, _ := strconv.Atoi(songMap[common.SerialKey])
+    _, err := deleteStmt.Exec(serial)
+    checkError(err)
+  }
 }

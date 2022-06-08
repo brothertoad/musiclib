@@ -5,6 +5,7 @@ import (
   "strconv"
 )
 
+const SerialKey = "serial"
 const FullPathKey = "fullPath"
 const BasePathKey = "basePath"
 const TitleKey = "title"
