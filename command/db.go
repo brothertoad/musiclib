@@ -46,3 +46,30 @@ func addArtistMapToDb(m map[string]common.Artist) {
     }
   }
 }
+
+func readArtistMapFromDb() map[string]common.Artist {
+  db, err := sql.Open("pgx", config.DbUrl)
+  checkError(err)
+  defer db.Close()
+
+  artistStmt, artistErr := db.Prepare("select id, name, sortName from artists")
+  checkError(artistErr)
+  defer artistStmt.Close()
+
+  artistRows, artistErr := artistStmt.Query()
+  checkError(artistErr)
+
+  artistMap := make(map[string]common.Artist, 1000)
+  for artistRows.Next() {
+    var artistId int
+    var artistName, artistSortName string
+    err := artistRows.Scan(&artistId, &artistName, &artistSortName)
+    checkError(err)
+    var artist common.Artist
+    artist.Serial = artistId
+    artist.Name = artistName
+    artist.SortName = artistSortName
+    artistMap[artistName] = artist
+  }
+  return artistMap
+}

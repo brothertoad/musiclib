@@ -5,12 +5,14 @@ import (
   "fmt"
   "io"
   "io/fs"
+  "io/ioutil"
   "log"
   "os"
   "path/filepath"
   "sort"
   "strconv"
   "strings"
+  "gopkg.in/yaml.v3"
   "github.com/brothertoad/musiclib/common"
   "github.com/brothertoad/musiclib/tags"
 )
@@ -203,7 +205,6 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
     artist := artists[name]
     albumTitle := sm[common.AlbumKey]
     if _, present := artist.Albums[albumTitle]; !present {
-      // var album common.Album
       album := new(common.Album)
       album.Title = albumTitle
       album.SortTitle = sm[common.AlbumSortKey]
@@ -219,7 +220,6 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
     artist := artists[name]
     albumTitle := sm[common.AlbumKey]
     album := artist.Albums[albumTitle]
-    // var song common.Song
     song := new(common.Song)
     song.Title = sm[common.TitleKey]
     song.TrackNumber, _ = strconv.Atoi(sm[common.TrackNumberKey])
@@ -237,4 +237,28 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
     album.Songs = append(album.Songs, song)
   }
   return artists
+}
+
+////////////////////////////////////////////////////////////////////////
+//
+// Logic for reading and writing a SongMapSlice from/to a YAML file.
+//
+////////////////////////////////////////////////////////////////////////
+
+func loadSongsFromYaml(path string) common.SongMapSlice {
+  songMaps := make(common.SongMapSlice, 0, 5000)
+  // logic came from https://zetcode.com/golang/yaml/
+  yfile, err := ioutil.ReadFile(path)
+  checkError(err)
+  err2 := yaml.Unmarshal(yfile, &songMaps)
+  checkError(err2)
+  return songMaps
+}
+
+func saveSongsToYaml(path string, songMaps common.SongMapSlice) {
+  fmt.Printf("Saving yaml in '%s'\n", path)
+  data, err := yaml.Marshal(&songMaps)
+  checkError(err)
+  err = ioutil.WriteFile(path, data, 0644)
+  checkError(err)
 }
