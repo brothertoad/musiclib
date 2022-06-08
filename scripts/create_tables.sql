@@ -8,7 +8,8 @@ create table albums (
 id int generated always as identity (start with 20001) primary key,
 artist integer references artists on delete cascade,
 title text,
-sortTitle text
+sortTitle text,
+unique (artist, title)
 );
 
 create table songs (
@@ -28,5 +29,6 @@ encoded_extension varchar(8),
 is_encoded boolean default false,
 md5 varchar(40),
 encoded_source_md5 varchar(40) default '',
-sublibs text default ''
+sublibs text default '',
+unique (album, trackNum, discNum)
 );
