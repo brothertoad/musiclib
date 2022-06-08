@@ -191,35 +191,38 @@ func deleteSongsFromDb(songMaps map[string]common.SongMap) {
 }
 
 // Delete any albums/artists that don't have any songs.
-func deleteEmptyParents() {
+func deleteEmptyContainers() {
   db, err := sql.Open("pgx", config.DbUrl)
   checkError(err)
   defer db.Close()
 
-  albumQueryStmt, albumQueryErr := db.Prepare("select id from albums")
-  checkError(albumQueryErr)
-  defer albumQueryStmt.Close()
+  deleteEmptyParents(db, "albums", "songs", "album")
+  deleteEmptyParents(db, "artists", "albums", "artist")
+}
 
-  songQueryStmt, songQueryErr := db.Prepare("select count(*) from songs where album = $1")
-  checkError(songQueryErr)
-  defer songQueryStmt.Close()
-
-  albumRows, err := albumQueryStmt.Query()
+func deleteEmptyParents(db *sql.DB, parentTable, childTable, keyCol string) {
+  parentQueryStmt, err := db.Prepare("select id from " + parentTable)
   checkError(err)
-  albumsToDelete := make([]int, 0)
-  for albumRows.Next() {
-    var albumId int
-    err := albumRows.Scan(&albumId)
+  defer parentQueryStmt.Close()
+  childQueryStmt, err := db.Prepare("select count(*) from " + childTable + " where " + keyCol + " = $1")
+  checkError(err)
+  defer childQueryStmt.Close();
+
+  rows, err := parentQueryStmt.Query()
+  checkError(err)
+  idsToDelete := make([]int, 0)
+  for rows.Next() {
+    var id int
+    err = rows.Scan(&id)
     checkError(err)
-    var songCount int
-    err = songQueryStmt.QueryRow(albumId).Scan(&songCount)
+    var count int
+    err = childQueryStmt.QueryRow(id).Scan(&count)
     checkError(err)
-    if songCount == 0 {
-      albumsToDelete = append(albumsToDelete, albumId)
+    if count == 0 {
+      idsToDelete = append(idsToDelete, id)
     }
   }
-  deleteIdsFromTable(db, albumsToDelete, "albums")
-  deleteEmptyArtists(db)
+  deleteIdsFromTable(db, idsToDelete, parentTable)
 }
 
 func deleteEmptyArtists(db *sql.DB) {

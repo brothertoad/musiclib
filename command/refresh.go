@@ -30,7 +30,7 @@ func doRefresh(c *cli.Context) error {
   fmt.Printf("%d songs added, %d songs deleted\n", len(added), len(deleted))
   deleteSongsFromDb(deleted)
   addSongsToDb(added)
-  deleteEmptyParents()
+  deleteEmptyContainers()
   return nil
 }
 
