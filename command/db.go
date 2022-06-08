@@ -212,6 +212,7 @@ func deleteEmptyParents() {
 
   albumRows, err := albumQueryStmt.Query()
   checkError(err)
+  albumsToDelete := make([]int, 0)
   for albumRows.Next() {
     var albumId int
     err := albumRows.Scan(&albumId)
@@ -221,6 +222,7 @@ func deleteEmptyParents() {
     checkError(err)
     if songCount == 0 {
       fmt.Printf("Need to delete album %d\n", albumId)
+      albumsToDelete = append(albumsToDelete, albumId)
     }
   }
 }
