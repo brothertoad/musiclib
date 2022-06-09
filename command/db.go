@@ -14,15 +14,15 @@ func getDbConnection() *sql.DB {
 }
 
 func addArtistMapToDb(db *sql.DB, m map[string]common.Artist) {
-  artistStmt, artistErr := db.Prepare("insert into artists(name, sortName) values ($1, $2) returning id")
+  artistStmt, artistErr := db.Prepare("insert into artists(name, sort_name) values ($1, $2) returning id")
   checkError(artistErr)
   defer artistStmt.Close()
 
-  albumStmt, albumErr := db.Prepare("insert into albums(artist, title, sortTitle) values ($1, $2, $3) returning id")
+  albumStmt, albumErr := db.Prepare("insert into albums(artist, title, sort_title) values ($1, $2, $3) returning id")
   checkError(albumErr)
   defer albumStmt.Close()
 
-  songStmt, songErr := db.Prepare(`insert into songs(album, title, trackNum, discNum, duration,
+  songStmt, songErr := db.Prepare(`insert into songs(album, title, track_number, disc_number, duration,
     flags, relative_path, base_path, mime, extension, encoded_extension, is_encoded, md5)
     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) returning id`)
   checkError(songErr)
@@ -51,15 +51,15 @@ func addArtistMapToDb(db *sql.DB, m map[string]common.Artist) {
 }
 
 func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
-  artistStmt, artistErr := db.Prepare("select id, name, sortName from artists")
+  artistStmt, artistErr := db.Prepare("select id, name, sort_name from artists")
   checkError(artistErr)
   defer artistStmt.Close()
 
-  albumStmt, albumErr := db.Prepare("select id, title, sortTitle from albums where artist = $1")
+  albumStmt, albumErr := db.Prepare("select id, title, sort_title from albums where artist = $1")
   checkError(albumErr)
   defer albumStmt.Close()
 
-  songStmt, songErr := db.Prepare(`select id, title, trackNum, discNum, duration,
+  songStmt, songErr := db.Prepare(`select id, title, track_number, disc_number, duration,
     flags, relative_path, base_path, mime, extension, encoded_extension,
     is_encoded, md5, encoded_source_md5, sublibs from songs where album = $1`)
   checkError(songErr)
@@ -110,7 +110,7 @@ func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
 
 func readSongListFromDb(db *sql.DB) []common.Song {
   songs := make([]common.Song, 0, 5000)
-  stmt, err := db.Prepare(`select id, title, trackNum, discNum, duration,
+  stmt, err := db.Prepare(`select id, title, track_number, disc_number, duration,
     flags, relative_path, base_path, mime, extension, encoded_extension,
     is_encoded, md5, encoded_source_md5, sublibs from songs`)
   checkError(err)
@@ -134,7 +134,7 @@ func addSongsToDb(db *sql.DB, songMaps map[string]common.SongMap) {
   checkError(artistQueryErr)
   defer artistQueryStmt.Close()
 
-  artistInsertStmt, artistInsertErr := db.Prepare("insert into artists(name, sortName) values ($1, $2) returning id")
+  artistInsertStmt, artistInsertErr := db.Prepare("insert into artists(name, sort_name) values ($1, $2) returning id")
   checkError(artistInsertErr)
   defer artistInsertStmt.Close()
 
@@ -142,11 +142,11 @@ func addSongsToDb(db *sql.DB, songMaps map[string]common.SongMap) {
   checkError(albumQueryErr)
   defer albumQueryStmt.Close()
 
-  albumInsertStmt, albumInsertErr := db.Prepare("insert into albums(artist, title, sortTitle) values ($1, $2, $3) returning id")
+  albumInsertStmt, albumInsertErr := db.Prepare("insert into albums(artist, title, sort_title) values ($1, $2, $3) returning id")
   checkError(albumInsertErr)
   defer albumInsertStmt.Close()
 
-  songInsertStmt, songInsertErr := db.Prepare(`insert into songs(album, title, trackNum, discNum, duration,
+  songInsertStmt, songInsertErr := db.Prepare(`insert into songs(album, title, track_number, disc_number, duration,
     flags, relative_path, base_path, mime, extension, encoded_extension, is_encoded, md5)
     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) returning id`)
   checkError(songInsertErr)
