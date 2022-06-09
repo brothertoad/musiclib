@@ -21,6 +21,7 @@ func main() {
     Flags: []cli.Flag {
       &cli.StringFlag {Name: "config", Required: true, EnvVars: []string{"MUSICLIB_CONFIG"},},
       &cli.BoolFlag {Name: "verbose", Aliases: []string{"v"}},
+      &cli.StringFlag {Name: "log-level"},
     },
     Commands: []*cli.Command {
       &command.CreateCommand,
