@@ -26,6 +26,7 @@ func main() {
     Commands: []*cli.Command {
       &command.CreateCommand,
       &command.RefreshCommand,
+      &command.EncodeCommand,
     },
     Before: command.Init,
   }

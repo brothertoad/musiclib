@@ -2,14 +2,6 @@ package command
 
 import (
   "fmt"
-  _ "io"
-  _ "io/fs"
-  _ "io/ioutil"
-  _ "log"
-  _ "os"
-  _ "path/filepath"
-  _ "sort"
-  _ "strings"
   "github.com/urfave/cli/v2"
   "github.com/brothertoad/musiclib/common"
 )
