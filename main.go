@@ -11,7 +11,7 @@ import (
 // Code for commands is in command directory.
 
 // Commands: create, refresh, serve, encode, mp3 (perhaps part of encode?), sublib
-// Perhaps allow sublib by extension, so don't need separate mp3 command.
+// Perhaps allow sublib by extension rather than flag, so don't need separate mp3 command.
 
 func main() {
   app := &cli.App {
