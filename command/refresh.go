@@ -21,16 +21,18 @@ var RefreshCommand = cli.Command {
 }
 
 func doRefresh(c *cli.Context) error {
+  db := getDbConnection()
+  defer db.Close()
   diskSongMaps := loadSongMapSliceFromMusicDir()
-  dbSongMaps := artistMapToSongMaps(readArtistMapFromDb())
+  dbSongMaps := artistMapToSongMaps(readArtistMapFromDb(db))
   diskMd5s := songMapSliceToMd5Map(diskSongMaps)
   dbMd5s := songMapSliceToMd5Map(dbSongMaps)
   added := findMissing(diskMd5s, dbMd5s)
   deleted := findMissing(dbMd5s, diskMd5s)
   fmt.Printf("%d songs added, %d songs deleted\n", len(added), len(deleted))
-  deleteSongsFromDb(deleted)
-  addSongsToDb(added)
-  deleteEmptyContainers()
+  deleteSongsFromDb(db, deleted)
+  addSongsToDb(db, added)
+  deleteEmptyContainers(db)
   return nil
 }
 

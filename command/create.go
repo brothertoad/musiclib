@@ -39,6 +39,8 @@ func doCreate(c *cli.Context) error {
   }
 
   fmt.Printf("Found %d songs.\n", len(songMaps))
-  addArtistMapToDb(songMapsToArtistMap(songMaps))
+  db := getDbConnection()
+  defer db.Close()
+  addArtistMapToDb(db, songMapsToArtistMap(songMaps))
   return nil
 }

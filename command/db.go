@@ -7,11 +7,13 @@ import (
   "github.com/brothertoad/musiclib/common"
 )
 
-func addArtistMapToDb(m map[string]common.Artist) {
+func getDbConnection() *sql.DB {
   db, err := sql.Open("pgx", config.DbUrl)
   checkError(err)
-  defer db.Close()
+  return db
+}
 
+func addArtistMapToDb(db *sql.DB, m map[string]common.Artist) {
   artistStmt, artistErr := db.Prepare("insert into artists(name, sortName) values ($1, $2) returning id")
   checkError(artistErr)
   defer artistStmt.Close()
@@ -48,11 +50,7 @@ func addArtistMapToDb(m map[string]common.Artist) {
   }
 }
 
-func readArtistMapFromDb() map[string]common.Artist {
-  db, err := sql.Open("pgx", config.DbUrl)
-  checkError(err)
-  defer db.Close()
-
+func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
   artistStmt, artistErr := db.Prepare("select id, name, sortName from artists")
   checkError(artistErr)
   defer artistStmt.Close()
@@ -110,11 +108,7 @@ func readArtistMapFromDb() map[string]common.Artist {
   return artistMap
 }
 
-func addSongsToDb(songMaps map[string]common.SongMap) {
-  db, err := sql.Open("pgx", config.DbUrl)
-  checkError(err)
-  defer db.Close()
-
+func addSongsToDb(db *sql.DB, songMaps map[string]common.SongMap) {
   artistQueryStmt, artistQueryErr := db.Prepare("select id from artists where name = $1")
   checkError(artistQueryErr)
   defer artistQueryStmt.Close()
@@ -173,11 +167,7 @@ func addSongsToDb(songMaps map[string]common.SongMap) {
   }
 }
 
-func deleteSongsFromDb(songMaps map[string]common.SongMap) {
-  db, err := sql.Open("pgx", config.DbUrl)
-  checkError(err)
-  defer db.Close()
-
+func deleteSongsFromDb(db *sql.DB, songMaps map[string]common.SongMap) {
   deleteStmt, deleteErr := db.Prepare("delete from songs where id = $1")
   checkError(deleteErr)
   defer deleteStmt.Close()
@@ -191,11 +181,7 @@ func deleteSongsFromDb(songMaps map[string]common.SongMap) {
 }
 
 // Delete any albums/artists that don't have any songs.
-func deleteEmptyContainers() {
-  db, err := sql.Open("pgx", config.DbUrl)
-  checkError(err)
-  defer db.Close()
-
+func deleteEmptyContainers(db *sql.DB) {
   deleteEmptyParents(db, "albums", "songs", "album")
   deleteEmptyParents(db, "artists", "albums", "artist")
 }
