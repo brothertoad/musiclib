@@ -23,7 +23,7 @@ func addArtistMapToDb(db *sql.DB, m map[string]common.Artist) {
   defer albumStmt.Close()
 
   songStmt, songErr := db.Prepare(`insert into songs(album, title, trackNum, discNum, duration,
-    flags, full_path, base_path, mime, extension, encoded_extension, is_encoded, md5)
+    flags, relative_path, base_path, mime, extension, encoded_extension, is_encoded, md5)
     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) returning id`)
   checkError(songErr)
   defer songStmt.Close()
@@ -41,7 +41,7 @@ func addArtistMapToDb(db *sql.DB, m map[string]common.Artist) {
       for _, song := range(album.Songs) {
         var songId int
         err := songStmt.QueryRow(albumId, song.Title, song.TrackNumber, song.DiscNumber, song.Duration,
-          song.Flags, song.FullPath, song.BasePath, song.Mime, song.Extension, song.EncodedExtension,
+          song.Flags, song.RelativePath, song.BasePath, song.Mime, song.Extension, song.EncodedExtension,
           song.IsEncoded, song.Md5).Scan(&songId)
         checkError(err)
         song.Id = songId
@@ -60,7 +60,7 @@ func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
   defer albumStmt.Close()
 
   songStmt, songErr := db.Prepare(`select id, title, trackNum, discNum, duration,
-    flags, full_path, base_path, mime, extension, encoded_extension,
+    flags, relative_path, base_path, mime, extension, encoded_extension,
     is_encoded, md5, encoded_source_md5, sublibs from songs where album = $1`)
   checkError(songErr)
   defer songStmt.Close()
@@ -96,7 +96,7 @@ func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
       for songRows.Next() {
         song := new(common.Song)
         err := songRows.Scan(&song.Id, &song.Title, &song.TrackNumber,
-          &song.DiscNumber, &song.Duration, &song.Flags, &song.FullPath, &song.BasePath,
+          &song.DiscNumber, &song.Duration, &song.Flags, &song.RelativePath, &song.BasePath,
           &song.Mime, &song.Extension, &song.EncodedExtension, &song.IsEncoded,
           &song.Md5, &song.EncodedSourceMd5, &song.Sublibs)
         checkError(err)
@@ -106,6 +106,27 @@ func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
     }
   }
   return artistMap
+}
+
+func readSongListFromDb(db *sql.DB) []common.Song {
+  songs := make([]common.Song, 0, 5000)
+  stmt, err := db.Prepare(`select id, title, trackNum, discNum, duration,
+    flags, relative_path, base_path, mime, extension, encoded_extension,
+    is_encoded, md5, encoded_source_md5, sublibs from songs`)
+  checkError(err)
+  defer stmt.Close()
+  rows, err := stmt.Query()
+  checkError(err)
+  for rows.Next() {
+    var song common.Song
+    err := rows.Scan(&song.Id, &song.Title, &song.TrackNumber,
+      &song.DiscNumber, &song.Duration, &song.Flags, &song.RelativePath, &song.BasePath,
+      &song.Mime, &song.Extension, &song.EncodedExtension, &song.IsEncoded,
+      &song.Md5, &song.EncodedSourceMd5, &song.Sublibs)
+    checkError(err)
+    songs = append(songs, song)
+  }
+  return songs
 }
 
 func addSongsToDb(db *sql.DB, songMaps map[string]common.SongMap) {
@@ -126,7 +147,7 @@ func addSongsToDb(db *sql.DB, songMaps map[string]common.SongMap) {
   defer albumInsertStmt.Close()
 
   songInsertStmt, songInsertErr := db.Prepare(`insert into songs(album, title, trackNum, discNum, duration,
-    flags, full_path, base_path, mime, extension, encoded_extension, is_encoded, md5)
+    flags, relative_path, base_path, mime, extension, encoded_extension, is_encoded, md5)
     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) returning id`)
   checkError(songInsertErr)
   defer songInsertStmt.Close()
@@ -160,11 +181,16 @@ func addSongsToDb(db *sql.DB, songMaps map[string]common.SongMap) {
     discNumber, _ := strconv.Atoi(songMap[common.DiscNumberKey])
     isEncoded, _ := strconv.ParseBool(songMap[common.IsEncodedKey])
     err = songInsertStmt.QueryRow(albumId, songMap[common.TitleKey], trackNumber, discNumber,
-      songMap[common.DurationKey], songMap[common.FlagsKey], songMap[common.FullPathKey],
+      songMap[common.DurationKey], songMap[common.FlagsKey], songMap[common.RelativePathKey],
       songMap[common.BasePathKey], songMap[common.MimeKey], songMap[common.ExtensionKey],
       songMap[common.EncodedExtensionKey], isEncoded, songMap[common.Md5Key]).Scan(&songId)
     checkError(err)
   }
+}
+
+func updateSongEncodedSourceMd5(db *sql.DB, song common.Song) {
+  _, err := db.Exec("update songs set encoded_source_md5 = $1 where id = $2", song.EncodedSourceMd5, song.Id)
+  checkError(err)
 }
 
 func deleteSongsFromDb(db *sql.DB, songMaps map[string]common.SongMap) {
@@ -180,7 +206,7 @@ func deleteSongsFromDb(db *sql.DB, songMaps map[string]common.SongMap) {
   }
 }
 
-// Delete any albums/artists that don't have any songs.
+// Delete any albums that don't have any songs and artists that don't have any albums.
 func deleteEmptyContainers(db *sql.DB) {
   deleteEmptyParents(db, "albums", "songs", "album")
   deleteEmptyParents(db, "artists", "albums", "artist")
@@ -209,31 +235,6 @@ func deleteEmptyParents(db *sql.DB, parentTable, childTable, keyCol string) {
     }
   }
   deleteIdsFromTable(db, idsToDelete, parentTable)
-}
-
-func deleteEmptyArtists(db *sql.DB) {
-  artistQueryStmt, err := db.Prepare("select id from artists")
-  checkError(err)
-  defer artistQueryStmt.Close()
-  albumQueryStmt, err := db.Prepare("select count(*) from albums where artist = $1")
-  checkError(err)
-  defer albumQueryStmt.Close();
-
-  artistRows, err := artistQueryStmt.Query()
-  checkError(err)
-  artistsToDelete := make([]int, 0)
-  for artistRows.Next() {
-    var artistId int
-    err = artistRows.Scan(&artistId)
-    checkError(err)
-    var albumCount int
-    err = albumQueryStmt.QueryRow(artistId).Scan(&albumCount)
-    checkError(err)
-    if albumCount == 0 {
-      artistsToDelete = append(artistsToDelete, artistId)
-    }
-  }
-  deleteIdsFromTable(db, artistsToDelete, "artists")
 }
 
 func deleteIdsFromTable(db *sql.DB, ids []int, table string) {

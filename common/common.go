@@ -5,8 +5,11 @@ import (
   "strconv"
 )
 
+// Relative path is relative to the musicDir specified in the configuration file.
+// Base path is the relative path with the extension removed (but with the trailing
+// period retained).
 const IdKey = "id"
-const FullPathKey = "fullPath"
+const RelativePathKey = "relativePath"
 const BasePathKey = "basePath"
 const TitleKey = "title"
 const ArtistKey = "artist"
@@ -64,7 +67,7 @@ type Song struct {
   Mime string
   Extension string
   EncodedExtension string
-  FullPath string
+  RelativePath string
   BasePath string
   IsEncoded bool
   Flags string

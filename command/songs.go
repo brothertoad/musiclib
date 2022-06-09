@@ -8,6 +8,7 @@ import (
   "io/ioutil"
   "log"
   "os"
+  "path"
   "path/filepath"
   "sort"
   "strconv"
@@ -39,7 +40,7 @@ var keyTranslations = map[string]string {
 // In addition to being required, these are the only keys we save in the yaml file.
 var requiredKeys = []string {
   common.TitleKey, common.ArtistKey, common.AlbumKey, common.TrackNumberKey, common.DiscNumberKey,
-  common.ArtistSortKey, common.AlbumSortKey, common.FullPathKey, common.BasePathKey,
+  common.ArtistSortKey, common.AlbumSortKey, common.RelativePathKey, common.BasePathKey,
   common.MimeKey, common.ExtensionKey, common.EncodedExtensionKey, common.IsEncodedKey,
   common.FlagsKey, common.DurationKey, common.Md5Key,
 }
@@ -74,11 +75,12 @@ func loadSongMapSliceFromMusicDir() common.SongMapSlice {
 }
 
 func setPaths(song common.SongMap, path string) {
-  song[common.FullPathKey] = path
-  // We will make the path relative to config.MusicDir, and remove the extension.
-  pathLength := len(path)
+  relativePath := path[musicDirLength:]
+  song[common.RelativePathKey] = relativePath
+  // Remove the extension to get the base path.
+  pathLength := len(relativePath)
   extLength := len(song[common.ExtensionKey])
-  song[common.BasePathKey] = path[musicDirLength:(pathLength-extLength)]
+  song[common.BasePathKey] = relativePath[0:(pathLength-extLength)]
 }
 
 // Replace keys with standard names.
@@ -96,7 +98,7 @@ func translateKeys(song common.SongMap) {
       s := strings.Split(tntt, "/")
       song[common.TrackNumberKey] = s[0]
     } else {
-      log.Printf("Can't get track number for '%s'\n", song[common.FullPathKey])
+      log.Printf("Can't get track number for '%s'\n", song[common.RelativePathKey])
     }
   }
   // Check for the disc number.  If it doesn't exist, see if it has the TPOS tag, which
@@ -123,7 +125,7 @@ func addSortKey(song common.SongMap, pureKey string, sortKey string) {
       song[sortKey] = getSortValue(vp)
     } else {
       // If we don't have the pure key, we've got problems.
-      log.Fatalf("no key '%s' for '%s'\n", pureKey, song[common.FullPathKey])
+      log.Fatalf("no key '%s' for '%s'\n", pureKey, song[common.RelativePathKey])
     }
   }
 }
@@ -151,12 +153,12 @@ func getSortValue(pureValue string) string {
 }
 
 func addMd5Key(song common.SongMap) {
-  f, err := os.Open(song[common.FullPathKey])
+  f, err := os.Open(path.Join(config.MusicDir,song[common.RelativePathKey]))
   checkError(err)
   defer f.Close()
   hasher.Reset()
   if _, err := io.Copy(hasher, f); err != nil {
-    log.Fatalf("Error trying to compute md5sum of %s\n", song[common.FullPathKey])
+    log.Fatalf("Error trying to compute md5sum of %s\n", song[common.RelativePathKey])
   }
   song[common.Md5Key] = hex.EncodeToString(hasher.Sum(nil))
 }
@@ -228,7 +230,7 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
     song.Mime = sm[common.MimeKey]
     song.Extension = sm[common.ExtensionKey]
     song.EncodedExtension = sm[common.EncodedExtensionKey]
-    song.FullPath = sm[common.FullPathKey]
+    song.RelativePath = sm[common.RelativePathKey]
     song.BasePath = sm[common.BasePathKey]
     song.IsEncoded, _ = strconv.ParseBool(sm[common.IsEncodedKey])
     song.Flags = sm[common.FlagsKey]
@@ -259,7 +261,7 @@ func artistMapToSongMaps(artistMap map[string]common.Artist) common.SongMapSlice
         songMap[common.DiscNumberKey] = strconv.Itoa(song.DiscNumber)
         songMap[common.ArtistSortKey] = artist.SortName
         songMap[common.AlbumSortKey] = album.SortTitle
-        songMap[common.FullPathKey] = song.FullPath
+        songMap[common.RelativePathKey] = song.RelativePath
         songMap[common.BasePathKey] = song.BasePath
         songMap[common.MimeKey] = song.Mime
         songMap[common.ExtensionKey] = song.Extension
