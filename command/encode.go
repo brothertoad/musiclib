@@ -40,7 +40,8 @@ func doEncode(c *cli.Context) error {
 }
 
 func copySong(song common.Song) {
-  src := path.Join(config.MusicDir, song.BasePath + song.Extension)
+  fmt.Printf("Copying %s...\n", song.RelativePath)
+  src := path.Join(config.MusicDir, song.RelativePath)
   dest := path.Join(config.EncodedDir, song.BasePath + song.EncodedExtension)
   err := os.MkdirAll(filepath.Dir(dest), 0775)
   checkError(err)
@@ -50,5 +51,5 @@ func copySong(song common.Song) {
 }
 
 func encodeSong(song common.Song) {
-
+  fmt.Printf("Encoding %s...\n", song.RelativePath)
 }
