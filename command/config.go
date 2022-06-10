@@ -22,6 +22,7 @@ var config struct {
 var verbose bool
 var musicDirLength int
 var hasher hash.Hash
+var encodeInput, encodeOutput int = -1, -1
 
 func Init(c *cli.Context) error {
   // Load the config file.
@@ -42,5 +43,17 @@ func Init(c *cli.Context) error {
   verbose = c.Bool("verbose")
   musicDirLength = len(config.MusicDir)
   hasher = md5.New()
+  // encodeInput and encodeOutput are the indices into the encode command that
+  // represent the input and output, respectively.
+  for j, cmd := range(config.EncodeCommand) {
+    if cmd == "$INPUT" {
+      encodeInput = j
+    } else if cmd == "$OUTPUT" {
+      encodeOutput = j
+    }
+  }
+  if encodeInput < 0 || encodeOutput < 0 {
+    log.Fatalln("Either input or output is missing from encode command.")
+  }
   return nil
 }
