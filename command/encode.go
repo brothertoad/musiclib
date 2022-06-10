@@ -2,9 +2,11 @@ package command
 
 import (
   "fmt"
+  "io"
   "io/ioutil"
   "log"
   "os"
+  "os/exec"
   "path"
   "path/filepath"
   "github.com/urfave/cli/v2"
@@ -72,7 +74,16 @@ func encodeSong(song common.Song, args []string, inputIndex int, outputIndex int
   fmt.Printf("Encoding %s...\n", song.RelativePath)
   inputPath := path.Join(config.MusicDir, song.RelativePath)
   outputPath := path.Join(config.EncodedDir, song.BasePath + song.EncodedExtension)
+  err := os.MkdirAll(filepath.Dir(outputPath), 0775)
+  checkError(err)
   args[inputIndex] = inputPath
   args[outputIndex] = outputPath
-  fmt.Printf("%v\n", args)
+  cmd := exec.Command(args[0], args[1:]...)
+  stderr, err := cmd.StderrPipe()
+  checkError(err)
+  err = cmd.Start()
+  checkError(err)
+  _, _ = io.ReadAll(stderr)
+  err = cmd.Wait()
+  checkError(err)
 }
