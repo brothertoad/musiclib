@@ -89,15 +89,19 @@ func validateEncoders() {
 }
 
 func copySong(song common.Song) {
-  fmt.Printf("Copying %s...\n", song.RelativePath)
   src := path.Join(config.MusicDir, song.RelativePath)
   for _, encoder := range(config.Encoders) {
-    dest := path.Join(encoder.Directory, song.BasePath + song.EncodedExtension)
-    err := os.MkdirAll(filepath.Dir(dest), 0775)
-    checkError(err)
-    bytes, err := ioutil.ReadFile(src)
-    checkError(err)
-    err = ioutil.WriteFile(dest, bytes, 0644)
+    // We only copy the file if the extension is the same as the encoder,
+    // or if the encoder is configured to include other encodings.
+    if song.Extension == encoder.Extension || encoder.includeOthers {
+      fmt.Printf("Copying %s...\n", song.RelativePath)
+      dest := path.Join(encoder.Directory, song.BasePath + song.EncodedExtension)
+      err := os.MkdirAll(filepath.Dir(dest), 0775)
+      checkError(err)
+      bytes, err := ioutil.ReadFile(src)
+      checkError(err)
+      err = ioutil.WriteFile(dest, bytes, 0644)
+    }
   }
 }
 

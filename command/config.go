@@ -23,7 +23,6 @@ type EncoderInfo struct {
 var config struct {
   MusicDir string `yaml:"musicDir"`
   Mp3Dir string `yaml:"mp3Dir"`
-  // EncodeCommand []string `yaml:"encodeCommand"`
   Encoders []EncoderInfo `yaml:"encoders"`
   DbUrl string `yaml:"dbUrl"`
 }
