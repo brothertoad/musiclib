@@ -9,6 +9,7 @@ import (
   "os/exec"
   "path"
   "path/filepath"
+  "strconv"
   "github.com/urfave/cli/v2"
   "github.com/brothertoad/musiclib/common"
 )
@@ -31,7 +32,7 @@ func doEncode(c *cli.Context) error {
   songs := readSongListFromDb(db)
   fmt.Printf("%d songs are candidates for encoding\n", len(songs))
 
-  findEncoderIndices()
+  validateEncoders()
 
   for _, song := range(songs) {
     // Regardless of whether or not the source file is already encoded,
@@ -51,8 +52,13 @@ func doEncode(c *cli.Context) error {
   return nil
 }
 
-func findEncoderIndices() {
+// Get the input and output indices for each encoder, and set the output
+// directory if it was not explicitly specified.
+func validateEncoders() {
   for i, encoder := range(config.Encoders) {
+    if encoder.Extension == "" {
+      log.Fatalf("Encoder %v does not have an extension\n", encoder)
+    }
     inputIndex := -1
     outputIndex := -1
     for j, arg := range(encoder.Commands) {
@@ -67,25 +73,39 @@ func findEncoderIndices() {
     }
     config.Encoders[i].inputIndex = inputIndex
     config.Encoders[i].outputIndex = outputIndex
+    if encoder.Directory == "" {
+      config.Encoders[i].Directory = config.MusicDir + "-" + config.Encoders[i].Extension
+    }
+    // Set includeOthers based on string provided in yaml file.  Note that the default
+    // is true, which is why we can't just use a bool in the yaml file.
+    if encoder.IncludeOtherEncodings == "" {
+      config.Encoders[i].includeOthers = true
+    } else {
+      includeOthers, err := strconv.ParseBool(encoder.IncludeOtherEncodings)
+      checkError(err)
+      config.Encoders[i].includeOthers = includeOthers
+    }
   }
 }
 
 func copySong(song common.Song) {
   fmt.Printf("Copying %s...\n", song.RelativePath)
   src := path.Join(config.MusicDir, song.RelativePath)
-  dest := path.Join(config.EncodedDir, song.BasePath + song.EncodedExtension)
-  err := os.MkdirAll(filepath.Dir(dest), 0775)
-  checkError(err)
-  bytes, err := ioutil.ReadFile(src)
-  checkError(err)
-  err = ioutil.WriteFile(dest, bytes, 0644)
+  for _, encoder := range(config.Encoders) {
+    dest := path.Join(encoder.Directory, song.BasePath + song.EncodedExtension)
+    err := os.MkdirAll(filepath.Dir(dest), 0775)
+    checkError(err)
+    bytes, err := ioutil.ReadFile(src)
+    checkError(err)
+    err = ioutil.WriteFile(dest, bytes, 0644)
+  }
 }
 
 func encodeSong(song common.Song) {
   fmt.Printf("Encoding %s...\n", song.RelativePath)
   inputPath := path.Join(config.MusicDir, song.RelativePath)
   for _, encoder := range(config.Encoders) {
-    outputPath := path.Join(config.EncodedDir, song.BasePath + encoder.Extension)
+    outputPath := path.Join(encoder.Directory, song.BasePath + encoder.Extension)
     err := os.MkdirAll(filepath.Dir(outputPath), 0775)
     checkError(err)
     encoder.Commands[encoder.inputIndex] = inputPath

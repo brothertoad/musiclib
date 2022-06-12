@@ -12,15 +12,16 @@ import (
 type EncoderInfo struct {
   Extension string `yaml:"extension"`
   Directory string `yaml:"dir"`
+  IncludeOtherEncodings string `yaml:"includeOtherEncodings"`
   Commands []string `yaml:"commands"`
   inputIndex int
   outputIndex int
+  includeOthers bool
 }
 
 // Configuration.
 var config struct {
   MusicDir string `yaml:"musicDir"`
-  EncodedDir string `yaml:"encodedDir"`
   Mp3Dir string `yaml:"mp3Dir"`
   // EncodeCommand []string `yaml:"encodeCommand"`
   Encoders []EncoderInfo `yaml:"encoders"`
