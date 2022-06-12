@@ -10,7 +10,7 @@ import (
 // Program for maintaining the music library database.  First non-option argument is a command.
 // Code for commands is in command directory.
 
-// Commands: create, refresh, serve, encode, mp3 (perhaps part of encode?), sublib
+// Commands: create, refresh, serve, encode, mp3 (perhaps part of encode?), sublib, export (csv, pdf)
 // Perhaps allow sublib by extension rather than flag, so don't need separate mp3 command.
 
 func main() {

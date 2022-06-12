@@ -19,27 +19,19 @@ var EncodeCommand = cli.Command {
   Action: doEncode,
 }
 
+type extendedEncoderInfo struct {
+  EncoderInfo
+  inputIndex int
+  outputIndex int
+}
+
 func doEncode(c *cli.Context) error {
   db := getDbConnection()
   defer db.Close()
   songs := readSongListFromDb(db)
   fmt.Printf("%d songs are candidates for encoding\n", len(songs))
 
-  // Before beginning encoding, make a clone of the encode command, and find out
-  // which entries represent the input and output.
-  args := make([]string, len(config.EncodeCommand))
-  copy(args, config.EncodeCommand)
-  inputIndex, outputIndex := -1, -1
-  for j, arg := range(args) {
-    if arg == "$INPUT" {
-      inputIndex = j
-    } else if arg == "$OUTPUT" {
-      outputIndex = j
-    }
-  }
-  if inputIndex < 0 || outputIndex < 0 {
-    log.Fatalf("In encode command, missing input (%d) and/or output (%d)\n", inputIndex, outputIndex)
-  }
+  findEncoderIndices()
 
   for _, song := range(songs) {
     // Regardless of whether or not the source file is already encoded,
@@ -51,12 +43,31 @@ func doEncode(c *cli.Context) error {
     if song.IsEncoded {
       copySong(song)
     } else {
-      encodeSong(song, args, inputIndex, outputIndex)
+      encodeSong(song)
     }
     song.EncodedSourceMd5 = song.Md5
     updateSongEncodedSourceMd5(db, song)
   }
   return nil
+}
+
+func findEncoderIndices() {
+  for i, encoder := range(config.Encoders) {
+    inputIndex := -1
+    outputIndex := -1
+    for j, arg := range(encoder.Commands) {
+      if arg == "$INPUT" {
+        inputIndex = j
+      } else if arg == "$OUTPUT" {
+        outputIndex = j
+      }
+    }
+    if inputIndex < 0 || outputIndex < 0 {
+      log.Fatalf("Missing either $INPUT or $OUTPUT for encoder %+v\n", encoder)
+    }
+    config.Encoders[i].inputIndex = inputIndex
+    config.Encoders[i].outputIndex = outputIndex
+  }
 }
 
 func copySong(song common.Song) {
@@ -70,20 +81,22 @@ func copySong(song common.Song) {
   err = ioutil.WriteFile(dest, bytes, 0644)
 }
 
-func encodeSong(song common.Song, args []string, inputIndex int, outputIndex int) {
+func encodeSong(song common.Song) {
   fmt.Printf("Encoding %s...\n", song.RelativePath)
   inputPath := path.Join(config.MusicDir, song.RelativePath)
-  outputPath := path.Join(config.EncodedDir, song.BasePath + song.EncodedExtension)
-  err := os.MkdirAll(filepath.Dir(outputPath), 0775)
-  checkError(err)
-  args[inputIndex] = inputPath
-  args[outputIndex] = outputPath
-  cmd := exec.Command(args[0], args[1:]...)
-  stderr, err := cmd.StderrPipe()
-  checkError(err)
-  err = cmd.Start()
-  checkError(err)
-  _, _ = io.ReadAll(stderr)
-  err = cmd.Wait()
-  checkError(err)
+  for _, encoder := range(config.Encoders) {
+    outputPath := path.Join(config.EncodedDir, song.BasePath + encoder.Extension)
+    err := os.MkdirAll(filepath.Dir(outputPath), 0775)
+    checkError(err)
+    encoder.Commands[encoder.inputIndex] = inputPath
+    encoder.Commands[encoder.outputIndex] = outputPath
+    cmd := exec.Command(encoder.Commands[0], encoder.Commands[1:]...)
+    stderr, err := cmd.StderrPipe()
+    checkError(err)
+    err = cmd.Start()
+    checkError(err)
+    _, _ = io.ReadAll(stderr)
+    err = cmd.Wait()
+    checkError(err)
+  }
 }

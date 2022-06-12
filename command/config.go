@@ -9,12 +9,21 @@ import (
   "gopkg.in/yaml.v3"
 )
 
+type EncoderInfo struct {
+  Extension string `yaml:"extension"`
+  Directory string `yaml:"dir"`
+  Commands []string `yaml:"commands"`
+  inputIndex int
+  outputIndex int
+}
+
 // Configuration.
 var config struct {
   MusicDir string `yaml:"musicDir"`
   EncodedDir string `yaml:"encodedDir"`
   Mp3Dir string `yaml:"mp3Dir"`
-  EncodeCommand []string `yaml:"encodeCommand"`
+  // EncodeCommand []string `yaml:"encodeCommand"`
+  Encoders []EncoderInfo `yaml:"encoders"`
   DbUrl string `yaml:"dbUrl"`
 }
 
