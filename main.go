@@ -12,6 +12,12 @@ import (
 
 // Commands: create, refresh, serve, encode, mp3 (perhaps part of encode?), sublib, export (csv, pdf)
 // Perhaps allow sublib by extension rather than flag, so don't need separate mp3 command.
+// Or simply use rclone/rsync for mp3.
+
+// TASKS: Add indexes to database, after populating it.  Use the log-level flag. Add a library
+// column to albums, and change configuration to support multiple libraries (one of which is the
+// default).  If library column is not used, then change database creation scripts to use a different
+// role for each database.
 
 func main() {
   app := &cli.App {
