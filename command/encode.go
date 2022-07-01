@@ -11,6 +11,7 @@ import (
   "path/filepath"
   "strconv"
   "github.com/urfave/cli/v2"
+  "github.com/brothertoad/btu"
   "github.com/brothertoad/musiclib/common"
 )
 
@@ -82,7 +83,7 @@ func validateEncoders() {
       config.Encoders[i].includeOthers = true
     } else {
       includeOthers, err := strconv.ParseBool(encoder.IncludeOtherEncodings)
-      checkError(err)
+      btu.CheckError(err)
       config.Encoders[i].includeOthers = includeOthers
     }
   }
@@ -97,9 +98,9 @@ func copySong(song common.Song) {
       fmt.Printf("Copying %s...\n", song.RelativePath)
       dest := path.Join(encoder.Directory, song.BasePath + song.EncodedExtension)
       err := os.MkdirAll(filepath.Dir(dest), 0775)
-      checkError(err)
+      btu.CheckError(err)
       bytes, err := ioutil.ReadFile(src)
-      checkError(err)
+      btu.CheckError(err)
       err = ioutil.WriteFile(dest, bytes, 0644)
     }
   }
@@ -111,16 +112,16 @@ func encodeSong(song common.Song) {
   for _, encoder := range(config.Encoders) {
     outputPath := path.Join(encoder.Directory, song.BasePath + encoder.Extension)
     err := os.MkdirAll(filepath.Dir(outputPath), 0775)
-    checkError(err)
+    btu.CheckError(err)
     encoder.Commands[encoder.inputIndex] = inputPath
     encoder.Commands[encoder.outputIndex] = outputPath
     cmd := exec.Command(encoder.Commands[0], encoder.Commands[1:]...)
     stderr, err := cmd.StderrPipe()
-    checkError(err)
+    btu.CheckError(err)
     err = cmd.Start()
-    checkError(err)
+    btu.CheckError(err)
     _, _ = io.ReadAll(stderr)
     err = cmd.Wait()
-    checkError(err)
+    btu.CheckError(err)
   }
 }

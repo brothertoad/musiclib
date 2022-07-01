@@ -5,7 +5,7 @@ import (
   "os"
 )
 
-func fileExists(path string) bool {
+func _fileExists(path string) bool {
   fileInfo, err := os.Stat(path)
   if err != nil {
     return false
@@ -16,7 +16,7 @@ func fileExists(path string) bool {
   return true
 }
 
-func dirExists(dir string) bool {
+func _dirExists(dir string) bool {
   fileInfo, err := os.Stat(dir)
   if err != nil {
     return false
@@ -27,13 +27,13 @@ func dirExists(dir string) bool {
   return true
 }
 
-func dirMustExist(dir string) {
-  if !dirExists(dir) {
+func _dirMustExist(dir string) {
+  if !_dirExists(dir) {
     log.Fatal("%s does not exist\n", dir)
   }
 }
 
-func checkError(err error) {
+func _checkError(err error) {
   if err != nil {
     log.Fatal(err)
   }

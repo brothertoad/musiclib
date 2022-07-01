@@ -3,6 +3,7 @@ module github.com/brothertoad/musiclib
 go 1.17
 
 require (
+	github.com/brothertoad/btu v0.0.0-20220627165445-9881c2d1fb54 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.1 // indirect

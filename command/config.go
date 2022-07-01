@@ -7,6 +7,7 @@ import (
   "io/ioutil"
   "github.com/urfave/cli/v2"
   "gopkg.in/yaml.v3"
+  "github.com/brothertoad/btu"
 )
 
 type EncoderInfo struct {
@@ -35,18 +36,18 @@ var hasher hash.Hash
 func Init(c *cli.Context) error {
   // Load the config file.
   path := c.String("config")
-  if !fileExists(path) {
+  if !btu.FileExists(path) {
     log.Fatalf("Config file '%s' does not exist.\n", path)
   }
   b, err := ioutil.ReadFile(path)
-  checkError(err)
+  btu.CheckError(err)
   err = yaml.Unmarshal(b, &config)
-  checkError(err)
+  btu.CheckError(err)
   // Verify our music directory is valid.
   if len(config.MusicDir) == 0 {
     log.Fatalln("No top level directory specified in configuration.")
   }
-  dirMustExist(config.MusicDir)
+  btu.DirMustExist(config.MusicDir)
   // Initialize the other global data.
   verbose = c.Bool("verbose")
   musicDirLength = len(config.MusicDir)

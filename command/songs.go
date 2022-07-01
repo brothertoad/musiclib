@@ -14,6 +14,7 @@ import (
   "strconv"
   "strings"
   "gopkg.in/yaml.v3"
+  "github.com/brothertoad/btu"
   "github.com/brothertoad/musiclib/common"
   "github.com/brothertoad/musiclib/tags"
 )
@@ -154,7 +155,7 @@ func getSortValue(pureValue string) string {
 
 func addMd5Key(song common.SongMap) {
   f, err := os.Open(path.Join(config.MusicDir,song[common.RelativePathKey]))
-  checkError(err)
+  btu.CheckError(err)
   defer f.Close()
   hasher.Reset()
   if _, err := io.Copy(hasher, f); err != nil {
@@ -288,16 +289,16 @@ func loadSongsFromYaml(path string) common.SongMapSlice {
   songMaps := make(common.SongMapSlice, 0, 5000)
   // logic came from https://zetcode.com/golang/yaml/
   yfile, err := ioutil.ReadFile(path)
-  checkError(err)
+  btu.CheckError(err)
   err2 := yaml.Unmarshal(yfile, &songMaps)
-  checkError(err2)
+  btu.CheckError(err2)
   return songMaps
 }
 
 func saveSongsToYaml(path string, songMaps common.SongMapSlice) {
   fmt.Printf("Saving yaml in '%s'\n", path)
   data, err := yaml.Marshal(&songMaps)
-  checkError(err)
+  btu.CheckError(err)
   err = ioutil.WriteFile(path, data, 0644)
-  checkError(err)
+  btu.CheckError(err)
 }
