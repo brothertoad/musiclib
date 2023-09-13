@@ -225,8 +225,8 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
     album := artist.Albums[albumTitle]
     song := new(common.Song)
     song.Title = sm[common.TitleKey]
-    song.TrackNumber, _ = strconv.Atoi(sm[common.TrackNumberKey])
-    song.DiscNumber, _ = strconv.Atoi(sm[common.DiscNumberKey])
+    song.TrackNumber = btu.Atoi(sm[common.TrackNumberKey])
+    song.DiscNumber = btu.Atoi(sm[common.DiscNumberKey])
     song.Duration = sm[common.DurationKey]
     song.Mime = sm[common.MimeKey]
     song.Extension = sm[common.ExtensionKey]

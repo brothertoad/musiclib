@@ -2,7 +2,7 @@ package common
 
 import (
   "sort"
-  "strconv"
+  "github.com/brothertoad/btu"
 )
 
 // Relative path is relative to the musicDir specified in the configuration file.
@@ -38,12 +38,12 @@ func (s SongMapSlice) Less(i, j int) bool {
   if s[i][ArtistSortKey] != s[j][ArtistSortKey] { return s[i][ArtistSortKey] < s[j][ArtistSortKey] }
   if s[i][AlbumSortKey] != s[j][AlbumSortKey] { return s[i][AlbumSortKey] < s[j][AlbumSortKey] }
   // convert disc numbers from strings to ints and check those
-  di, _ := strconv.Atoi(s[i][DiscNumberKey])
-  dj, _ := strconv.Atoi(s[j][DiscNumberKey])
+  di := btu.Atoi(s[i][DiscNumberKey])
+  dj := btu.Atoi(s[j][DiscNumberKey])
   if di != dj { return di < dj }
   // convert track numbers from strings to ints and check those
-  tni, _ := strconv.Atoi(s[i][TrackNumberKey])
-  tnj, _ := strconv.Atoi(s[j][TrackNumberKey])
+  tni := btu.Atoi(s[i][TrackNumberKey])
+  tnj := btu.Atoi(s[j][TrackNumberKey])
   return tni < tnj
 }
 func (s SongMapSlice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }

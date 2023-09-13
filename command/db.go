@@ -178,8 +178,8 @@ func addSongsToDb(db *sql.DB, songMaps map[string]common.SongMap) {
     }
     // Now we can add the song.
     var songId int
-    trackNumber, _ := strconv.Atoi(songMap[common.TrackNumberKey])
-    discNumber, _ := strconv.Atoi(songMap[common.DiscNumberKey])
+    trackNumber := btu.Atoi(songMap[common.TrackNumberKey])
+    discNumber := btu.Atoi(songMap[common.DiscNumberKey])
     isEncoded, _ := strconv.ParseBool(songMap[common.IsEncodedKey])
     err = songInsertStmt.QueryRow(albumId, songMap[common.TitleKey], trackNumber, discNumber,
       songMap[common.DurationKey], songMap[common.FlagsKey], songMap[common.RelativePathKey],
@@ -201,7 +201,7 @@ func deleteSongsFromDb(db *sql.DB, songMaps map[string]common.SongMap) {
 
   for _, songMap := range(songMaps) {
     // Have to convert the id value in the SongMap from a string to an int.
-    id, _ := strconv.Atoi(songMap[common.IdKey])
+    id := btu.Atoi(songMap[common.IdKey])
     _, err := deleteStmt.Exec(id)
     btu.CheckError(err)
   }
