@@ -24,8 +24,8 @@ func addArtistMapToDb(db *sql.DB, m map[string]common.Artist) {
   defer albumStmt.Close()
 
   songStmt, songErr := db.Prepare(`insert into songs(album, title, track_number, disc_number, duration,
-    flags, relative_path, base_path, mime, extension, encoded_extension, is_encoded, md5, size, mod_time)
-    values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) returning id`)
+    flags, relative_path, base_path, mime, extension, encoded_extension, is_encoded, md5, size_and_time)
+    values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) returning id`)
   btu.CheckError(songErr)
   defer songStmt.Close()
 
@@ -43,7 +43,7 @@ func addArtistMapToDb(db *sql.DB, m map[string]common.Artist) {
         var songId int
         err := songStmt.QueryRow(albumId, song.Title, song.TrackNumber, song.DiscNumber, song.Duration,
           song.Flags, song.RelativePath, song.BasePath, song.Mime, song.Extension, song.EncodedExtension,
-          song.IsEncoded, song.Md5, song.Size, song.ModTime).Scan(&songId)
+          song.IsEncoded, song.Md5, song.SizeAndTime).Scan(&songId)
         btu.CheckError(err)
         song.Id = songId
       }
@@ -62,7 +62,7 @@ func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
 
   songStmt, songErr := db.Prepare(`select id, title, track_number, disc_number, duration,
     flags, relative_path, base_path, mime, extension, encoded_extension,
-    is_encoded, md5, size, mod_time, encoded_source_md5, sublibs from songs where album = $1`)
+    is_encoded, md5, size_and_time, encoded_source_md5, sublibs from songs where album = $1`)
   btu.CheckError(songErr)
   defer songStmt.Close()
 
@@ -99,7 +99,7 @@ func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
         err := songRows.Scan(&song.Id, &song.Title, &song.TrackNumber,
           &song.DiscNumber, &song.Duration, &song.Flags, &song.RelativePath, &song.BasePath,
           &song.Mime, &song.Extension, &song.EncodedExtension, &song.IsEncoded,
-          &song.Md5, &song.Size, &song.ModTime, &song.EncodedSourceMd5, &song.Sublibs)
+          &song.Md5, &song.SizeAndTime, &song.EncodedSourceMd5, &song.Sublibs)
         btu.CheckError(err)
         album.Songs = append(album.Songs, song)
         totalSongs++
@@ -113,7 +113,7 @@ func readSongListFromDb(db *sql.DB) []common.Song {
   songs := make([]common.Song, 0, 5000)
   stmt, err := db.Prepare(`select id, title, track_number, disc_number, duration,
     flags, relative_path, base_path, mime, extension, encoded_extension,
-    is_encoded, md5, size, mod_time, encoded_source_md5, sublibs from songs`)
+    is_encoded, md5, size_and_time, encoded_source_md5, sublibs from songs`)
   btu.CheckError(err)
   defer stmt.Close()
   rows, err := stmt.Query()
@@ -123,7 +123,7 @@ func readSongListFromDb(db *sql.DB) []common.Song {
     err := rows.Scan(&song.Id, &song.Title, &song.TrackNumber,
       &song.DiscNumber, &song.Duration, &song.Flags, &song.RelativePath, &song.BasePath,
       &song.Mime, &song.Extension, &song.EncodedExtension, &song.IsEncoded,
-      &song.Md5, &song.Size, &song.ModTime, &song.EncodedSourceMd5, &song.Sublibs)
+      &song.Md5, &song.SizeAndTime, &song.EncodedSourceMd5, &song.Sublibs)
     btu.CheckError(err)
     songs = append(songs, song)
   }
@@ -148,8 +148,8 @@ func addSongsToDb(db *sql.DB, songMaps map[string]common.SongMap) {
   defer albumInsertStmt.Close()
 
   songInsertStmt, songInsertErr := db.Prepare(`insert into songs(album, title, track_number, disc_number, duration,
-    flags, relative_path, base_path, mime, extension, encoded_extension, is_encoded, md5, size, mod_time)
-    values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) returning id`)
+    flags, relative_path, base_path, mime, extension, encoded_extension, is_encoded, md5, size_and_time)
+    values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) returning id`)
   btu.CheckError(songInsertErr)
   defer songInsertStmt.Close()
 
@@ -181,12 +181,10 @@ func addSongsToDb(db *sql.DB, songMaps map[string]common.SongMap) {
     trackNumber := btu.Atoi(songMap[common.TrackNumberKey])
     discNumber := btu.Atoi(songMap[common.DiscNumberKey])
     isEncoded, _ := strconv.ParseBool(songMap[common.IsEncodedKey])
-    size := btu.ParseInt64(songMap[common.SizeKey], "Can't parse song size '%s'\n", songMap[common.SizeKey])
-    modTime := btu.ParseInt64(songMap[common.ModTimeKey], "Can't parse song modTime '%s'\n", songMap[common.ModTimeKey])
     err = songInsertStmt.QueryRow(albumId, songMap[common.TitleKey], trackNumber, discNumber,
       songMap[common.DurationKey], songMap[common.FlagsKey], songMap[common.RelativePathKey],
       songMap[common.BasePathKey], songMap[common.MimeKey], songMap[common.ExtensionKey],
-      songMap[common.EncodedExtensionKey], isEncoded, songMap[common.Md5Key], size, modTime).Scan(&songId)
+      songMap[common.EncodedExtensionKey], isEncoded, songMap[common.Md5Key], songMap[common.SizeAndTimeKey]).Scan(&songId)
     btu.CheckError(err)
   }
 }
