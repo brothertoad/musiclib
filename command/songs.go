@@ -43,7 +43,7 @@ var requiredKeys = []string {
   common.TitleKey, common.ArtistKey, common.AlbumKey, common.TrackNumberKey, common.DiscNumberKey,
   common.ArtistSortKey, common.AlbumSortKey, common.RelativePathKey, common.BasePathKey,
   common.MimeKey, common.ExtensionKey, common.EncodedExtensionKey, common.IsEncodedKey,
-  common.FlagsKey, common.DurationKey, common.Md5Key,
+  common.FlagsKey, common.DurationKey, common.Md5Key, common.SizeKey, common.ModTimeKey,
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -67,6 +67,10 @@ func loadSongMapSliceFromMusicDir() common.SongMapSlice {
     translateKeys(song)
     addSortKeys(song)
     addMd5Key(song)
+    info, err := de.Info()
+    btu.CheckError2(err, "Couldn't get fileInfo for '%s'\n", path)
+    song[common.SizeKey] = fmt.Sprintf("%ld", info.Size())
+    song[common.ModTimeKey] = fmt.Sprintf("%ld", info.ModTime().Unix())
     checkForMissingKeys(song)
     songMaps = append(songMaps, filterKeys(song))
     return nil
@@ -236,6 +240,8 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
     song.IsEncoded, _ = strconv.ParseBool(sm[common.IsEncodedKey])
     song.Flags = sm[common.FlagsKey]
     song.Md5 = sm[common.Md5Key]
+    song.Size = btu.ParseInt64(sm[common.SizeKey], "Can't convert size (%s) of %s to a number\n", sm[common.SizeKey], sm[common.BasePathKey])
+    song.ModTime = btu.ParseInt64(sm[common.ModTimeKey], "Can't convert mod time (%s) of %s to a number\n", sm[common.ModTimeKey], sm[common.BasePathKey])
     song.EncodedSourceMd5 = sm[common.EncodedSourceMd5Key]
     album.Songs = append(album.Songs, song)
   }
@@ -271,6 +277,8 @@ func artistMapToSongMaps(artistMap map[string]common.Artist) common.SongMapSlice
         songMap[common.FlagsKey] = song.Flags
         songMap[common.DurationKey] = song.Duration
         songMap[common.Md5Key] = song.Md5
+        songMap[common.SizeKey] = strconv.FormatInt(song.Size, 10)
+        songMap[common.ModTimeKey] = strconv.FormatInt(song.ModTime, 10)
         songMaps = append(songMaps, songMap)
       }
     }

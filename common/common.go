@@ -25,6 +25,8 @@ const EncodedExtensionKey = "encodedExtension"
 const IsEncodedKey = "isEncoded"
 const FlagsKey = "flags"
 const Md5Key = "md5"
+const SizeKey = "size"
+const ModTimeKey = "modTime"
 const EncodedSourceMd5Key = "encodedSourceMd5"
 
 const EncodeFlag = "e"
@@ -71,6 +73,8 @@ type Song struct {
   BasePath string
   IsEncoded bool
   Flags string
+  Size int64
+  ModTime int64
   Md5 string
   EncodedSourceMd5 string
   Sublibs string
