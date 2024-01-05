@@ -69,7 +69,7 @@ func loadSongMapSliceFromMusicDir() common.SongMapSlice {
     addMd5Key(song)
     info, err := de.Info()
     btu.CheckError2(err, "Couldn't get fileInfo for '%s'\n", path)
-    song[common.SizeAndTimeKey] = fmt.Sprintf("%ld-%ld", info.Size(), info.ModTime().Unix())
+    song[common.SizeAndTimeKey] = fmt.Sprintf("%d-%d", info.Size(), info.ModTime().Unix())
     checkForMissingKeys(song)
     songMaps = append(songMaps, filterKeys(song))
     return nil
