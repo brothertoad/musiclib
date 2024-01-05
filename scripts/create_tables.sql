@@ -29,6 +29,8 @@ extension text,
 encoded_extension text,
 is_encoded boolean default false,
 md5 text,
+size bigint,
+mod_time bigint,
 encoded_source_md5 text default '',
 sublibs text default '',
 unique (album, track_number, disc_number)
