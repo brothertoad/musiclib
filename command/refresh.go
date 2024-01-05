@@ -17,10 +17,10 @@ func doRefresh(c *cli.Context) error {
   defer db.Close()
   diskSongMaps := loadSongMapSliceFromMusicDir()
   dbSongMaps := artistMapToSongMaps(readArtistMapFromDb(db))
-  diskMd5s := songMapSliceToMd5Map(diskSongMaps)
-  dbMd5s := songMapSliceToMd5Map(dbSongMaps)
-  added := findMissing(diskMd5s, dbMd5s)
-  deleted := findMissing(dbMd5s, diskMd5s)
+  diskKeys := songMapSliceToSizeAndTimeMap(diskSongMaps)
+  dbKeys := songMapSliceToSizeAndTimeMap(dbSongMaps)
+  added := findMissing(diskKeys, dbKeys)
+  deleted := findMissing(dbKeys, diskKeys)
   fmt.Printf("%d songs added, %d songs deleted\n", len(added), len(deleted))
   deleteSongsFromDb(db, deleted)
   addSongsToDb(db, added)
@@ -28,20 +28,20 @@ func doRefresh(c *cli.Context) error {
   return nil
 }
 
-func songMapSliceToMd5Map(s common.SongMapSlice) map[string]common.SongMap {
+func songMapSliceToSizeAndTimeMap(s common.SongMapSlice) map[string]common.SongMap {
   md5Map := make(map[string]common.SongMap, len(s))
   for _, songMap := range(s) {
-    md5Map[songMap[common.Md5Key]] = songMap
+    md5Map[songMap[common.SizeAndTimeKey]] = songMap
   }
   return md5Map
 }
 
 func findMissing(src, dest map[string]common.SongMap) map[string]common.SongMap {
   list := make(map[string]common.SongMap, len(src))
-  for srcMd5, srcSongMap := range(src) {
-    _, present := dest[srcMd5]
+  for srcSizeAndTime, srcSongMap := range(src) {
+    _, present := dest[srcSizeAndTime]
     if !present {
-      list[srcMd5] = srcSongMap
+      list[srcSizeAndTime] = srcSongMap
     }
   }
   return list
