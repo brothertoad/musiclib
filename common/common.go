@@ -26,7 +26,7 @@ const IsEncodedKey = "isEncoded"
 const FlagsKey = "flags"
 const Md5Key = "md5"
 const SizeAndTimeKey = "sizeAndTime"
-const EncodedSourceMd5Key = "encodedSourceMd5"
+const EncodedSourceKey = "encodedSource" // size and time of source of encoding
 
 const EncodeFlag = "e"
 
@@ -74,7 +74,7 @@ type Song struct {
   Flags string
   SizeAndTime string
   Md5 string
-  EncodedSourceMd5 string
+  EncodedSource string
   Sublibs string
 }
 

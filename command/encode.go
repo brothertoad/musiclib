@@ -39,7 +39,7 @@ func doEncode(c *cli.Context) error {
     // Regardless of whether or not the source file is already encoded,
     // if there is an encodedSourceMd5 and it matches the current Md5,
     // we don't need to do anything.
-    if song.Md5 == song.EncodedSourceMd5 {
+    if song.SizeAndTime == song.EncodedSource {
       continue
     }
     if song.IsEncoded {
@@ -47,8 +47,8 @@ func doEncode(c *cli.Context) error {
     } else {
       encodeSong(song)
     }
-    song.EncodedSourceMd5 = song.Md5
-    updateSongEncodedSourceMd5(db, song)
+    song.EncodedSource = song.SizeAndTime
+    updateSongEncodedSource(db, song)
   }
   return nil
 }

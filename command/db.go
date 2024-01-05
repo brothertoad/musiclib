@@ -62,7 +62,7 @@ func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
 
   songStmt, songErr := db.Prepare(`select id, title, track_number, disc_number, duration,
     flags, relative_path, base_path, mime, extension, encoded_extension,
-    is_encoded, md5, size_and_time, encoded_source_md5, sublibs from songs where album = $1`)
+    is_encoded, md5, size_and_time, encoded_source, sublibs from songs where album = $1`)
   btu.CheckError(songErr)
   defer songStmt.Close()
 
@@ -99,7 +99,7 @@ func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
         err := songRows.Scan(&song.Id, &song.Title, &song.TrackNumber,
           &song.DiscNumber, &song.Duration, &song.Flags, &song.RelativePath, &song.BasePath,
           &song.Mime, &song.Extension, &song.EncodedExtension, &song.IsEncoded,
-          &song.Md5, &song.SizeAndTime, &song.EncodedSourceMd5, &song.Sublibs)
+          &song.Md5, &song.SizeAndTime, &song.EncodedSource, &song.Sublibs)
         btu.CheckError(err)
         album.Songs = append(album.Songs, song)
         totalSongs++
@@ -113,7 +113,7 @@ func readSongListFromDb(db *sql.DB) []common.Song {
   songs := make([]common.Song, 0, 5000)
   stmt, err := db.Prepare(`select id, title, track_number, disc_number, duration,
     flags, relative_path, base_path, mime, extension, encoded_extension,
-    is_encoded, md5, size_and_time, encoded_source_md5, sublibs from songs`)
+    is_encoded, md5, size_and_time, encoded_source, sublibs from songs`)
   btu.CheckError(err)
   defer stmt.Close()
   rows, err := stmt.Query()
@@ -123,7 +123,7 @@ func readSongListFromDb(db *sql.DB) []common.Song {
     err := rows.Scan(&song.Id, &song.Title, &song.TrackNumber,
       &song.DiscNumber, &song.Duration, &song.Flags, &song.RelativePath, &song.BasePath,
       &song.Mime, &song.Extension, &song.EncodedExtension, &song.IsEncoded,
-      &song.Md5, &song.SizeAndTime, &song.EncodedSourceMd5, &song.Sublibs)
+      &song.Md5, &song.SizeAndTime, &song.EncodedSource, &song.Sublibs)
     btu.CheckError(err)
     songs = append(songs, song)
   }
@@ -189,8 +189,8 @@ func addSongsToDb(db *sql.DB, songMaps map[string]common.SongMap) {
   }
 }
 
-func updateSongEncodedSourceMd5(db *sql.DB, song common.Song) {
-  _, err := db.Exec("update songs set encoded_source_md5 = $1 where id = $2", song.EncodedSourceMd5, song.Id)
+func updateSongEncodedSource(db *sql.DB, song common.Song) {
+  _, err := db.Exec("update songs set encoded_source = $1 where id = $2", song.EncodedSource, song.Id)
   btu.CheckError(err)
 }
 
