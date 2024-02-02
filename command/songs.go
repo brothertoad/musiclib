@@ -15,35 +15,35 @@ import (
   "strings"
   "gopkg.in/yaml.v3"
   "github.com/brothertoad/btu"
+  "github.com/brothertoad/tags"
   "github.com/brothertoad/musiclib/common"
-  "github.com/brothertoad/musiclib/tags"
 )
 
 var keyTranslations = map[string]string {
-  "\xa9nam": common.TitleKey,
-  "\xa9ART" : common.ArtistKey,
-  "\xa9alb" : common.AlbumKey,
-  "soar" : common.ArtistSortKey,
-  "soal" : common.AlbumSortKey,
-  "ALBUM" : common.AlbumKey,
-  "ARTIST" : common.ArtistKey,
-  "TITLE" : common.TitleKey,
-  "trkn" : common.TrackNumberKey,
-  "disk" : common.DiscNumberKey,
-  "tracknumber" : common.TrackNumberKey,
-  "TRACKNUMBER" : common.TrackNumberKey,
-  "DISKNUMBER" : common.DiscNumberKey,
-  "TIT2" : common.TitleKey,
-  "TPE1" : common.ArtistKey,
-  "TALB" : common.AlbumKey,
+  "\xa9nam": tags.TitleKey,
+  "\xa9ART" : tags.ArtistKey,
+  "\xa9alb" : tags.AlbumKey,
+  "soar" : tags.ArtistSortKey,
+  "soal" : tags.AlbumSortKey,
+  "ALBUM" : tags.AlbumKey,
+  "ARTIST" : tags.ArtistKey,
+  "TITLE" : tags.TitleKey,
+  "trkn" : tags.TrackNumberKey,
+  "disk" : tags.DiscNumberKey,
+  "tracknumber" : tags.TrackNumberKey,
+  "TRACKNUMBER" : tags.TrackNumberKey,
+  "DISKNUMBER" : tags.DiscNumberKey,
+  "TIT2" : tags.TitleKey,
+  "TPE1" : tags.ArtistKey,
+  "TALB" : tags.AlbumKey,
 }
 
 // In addition to being required, these are the only keys we save in the yaml file.
 var requiredKeys = []string {
-  common.TitleKey, common.ArtistKey, common.AlbumKey, common.TrackNumberKey, common.DiscNumberKey,
-  common.ArtistSortKey, common.AlbumSortKey, common.RelativePathKey, common.BasePathKey,
-  common.MimeKey, common.ExtensionKey, common.EncodedExtensionKey, common.IsEncodedKey,
-  common.FlagsKey, common.DurationKey, common.Md5Key, common.SizeAndTimeKey,
+  tags.TitleKey, tags.ArtistKey, tags.AlbumKey, tags.TrackNumberKey, tags.DiscNumberKey,
+  tags.ArtistSortKey, tags.AlbumSortKey, tags.RelativePathKey, tags.BasePathKey,
+  tags.MimeKey, tags.ExtensionKey, tags.EncodedExtensionKey, tags.IsEncodedKey,
+  tags.FlagsKey, tags.DurationKey, tags.Md5Key, tags.SizeAndTimeKey,
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -52,8 +52,8 @@ var requiredKeys = []string {
 //
 ////////////////////////////////////////////////////////////////////////
 
-func loadSongMapSliceFromMusicDir() common.SongMapSlice {
-  songMaps := make(common.SongMapSlice, 0, 5000)
+func loadSongMapSliceFromMusicDir() tags.TagMapSlice {
+  songMaps := make(tags.TagMapSlice, 0, 5000)
   filepath.WalkDir(config.MusicDir, func(path string, de fs.DirEntry, err error) error {
     if de.IsDir() {
       return nil
@@ -63,13 +63,13 @@ func loadSongMapSliceFromMusicDir() common.SongMapSlice {
       return nil
     }
     setPaths(song, path)
-    song[common.FlagsKey] = common.EncodeFlag
+    song[tags.FlagsKey] = tags.EncodeFlag
     translateKeys(song)
     addSortKeys(song)
     addMd5Key(song)
     info, err := de.Info()
     btu.CheckError2(err, "Couldn't get fileInfo for '%s'\n", path)
-    song[common.SizeAndTimeKey] = fmt.Sprintf("%d-%d", info.Size(), info.ModTime().Unix())
+    song[tags.SizeAndTimeKey] = fmt.Sprintf("%d-%d", info.Size(), info.ModTime().Unix())
     checkForMissingKeys(song)
     songMaps = append(songMaps, filterKeys(song))
     return nil
@@ -78,17 +78,17 @@ func loadSongMapSliceFromMusicDir() common.SongMapSlice {
   return songMaps
 }
 
-func setPaths(song common.SongMap, path string) {
+func setPaths(song tags.TagMap, path string) {
   relativePath := path[musicDirLength:]
-  song[common.RelativePathKey] = relativePath
+  song[tags.RelativePathKey] = relativePath
   // Remove the extension to get the base path.
   pathLength := len(relativePath)
-  extLength := len(song[common.ExtensionKey])
-  song[common.BasePathKey] = relativePath[0:(pathLength-extLength)]
+  extLength := len(song[tags.ExtensionKey])
+  song[tags.BasePathKey] = relativePath[0:(pathLength-extLength)]
 }
 
 // Replace keys with standard names.
-func translateKeys(song common.SongMap) {
+func translateKeys(song tags.TagMap) {
   for k, v := range song {
     if trans, present := keyTranslations[k]; present {
       delete(song, k)
@@ -97,39 +97,39 @@ func translateKeys(song common.SongMap) {
   }
   // Check for the track number.  If it doesn't exist, see if it has the TRCK tag, which
   // is track number / track total and get the track number from that.
-  if _, present := song[common.TrackNumberKey]; !present {
+  if _, present := song[tags.TrackNumberKey]; !present {
     if tntt, tnttPresent := song["TRCK"]; tnttPresent {
       s := strings.Split(tntt, "/")
-      song[common.TrackNumberKey] = s[0]
+      song[tags.TrackNumberKey] = s[0]
     } else {
-      log.Printf("Can't get track number for '%s'\n", song[common.RelativePathKey])
+      log.Printf("Can't get track number for '%s'\n", song[tags.RelativePathKey])
     }
   }
   // Check for the disc number.  If it doesn't exist, see if it has the TPOS tag, which
   // is disc number / disc total and get the disc number from that.  If that doesn't
   // exist, assume disc 1.
-  if _, present := song[common.DiscNumberKey]; !present {
+  if _, present := song[tags.DiscNumberKey]; !present {
     if dndt, dndtPresent := song["TPOS"]; dndtPresent {
       s := strings.Split(dndt, "/")
-      song[common.DiscNumberKey] = s[0]
+      song[tags.DiscNumberKey] = s[0]
     } else {
-      song[common.DiscNumberKey] = "1"
+      song[tags.DiscNumberKey] = "1"
     }
   }
 }
 
-func addSortKeys(song common.SongMap) {
-  addSortKey(song, common.ArtistKey, common.ArtistSortKey)
-  addSortKey(song, common.AlbumKey, common.AlbumSortKey)
+func addSortKeys(song tags.TagMap) {
+  addSortKey(song, tags.ArtistKey, tags.ArtistSortKey)
+  addSortKey(song, tags.AlbumKey, tags.AlbumSortKey)
 }
 
-func addSortKey(song common.SongMap, pureKey string, sortKey string) {
+func addSortKey(song tags.TagMap, pureKey string, sortKey string) {
   if _, present := song[sortKey]; !present {
     if vp, purePresent := song[pureKey]; purePresent {
       song[sortKey] = getSortValue(vp)
     } else {
       // If we don't have the pure key, we've got problems.
-      log.Fatalf("no key '%s' for '%s'\n", pureKey, song[common.RelativePathKey])
+      log.Fatalf("no key '%s' for '%s'\n", pureKey, song[tags.RelativePathKey])
     }
   }
 }
@@ -156,18 +156,18 @@ func getSortValue(pureValue string) string {
   return pureValue
 }
 
-func addMd5Key(song common.SongMap) {
-  f, err := os.Open(path.Join(config.MusicDir,song[common.RelativePathKey]))
+func addMd5Key(song tags.TagMap) {
+  f, err := os.Open(path.Join(config.MusicDir,song[tags.RelativePathKey]))
   btu.CheckError(err)
   defer f.Close()
   hasher.Reset()
   if _, err := io.Copy(hasher, f); err != nil {
-    log.Fatalf("Error trying to compute md5sum of %s\n", song[common.RelativePathKey])
+    log.Fatalf("Error trying to compute md5sum of %s\n", song[tags.RelativePathKey])
   }
-  song[common.Md5Key] = hex.EncodeToString(hasher.Sum(nil))
+  song[tags.Md5Key] = hex.EncodeToString(hasher.Sum(nil))
 }
 
-func checkForMissingKeys(song common.SongMap) {
+func checkForMissingKeys(song tags.TagMap) {
   for _, k := range(requiredKeys) {
     if _, present := song[k]; !present {
       fmt.Printf("%+v is missing %s\n", song, k)
@@ -175,8 +175,8 @@ func checkForMissingKeys(song common.SongMap) {
   }
 }
 
-func filterKeys(song common.SongMap) common.SongMap {
-  filtered := make(common.SongMap)
+func filterKeys(song tags.TagMap) tags.TagMap {
+  filtered := make(tags.TagMap)
   for _, k := range(requiredKeys) {
     filtered[k] = song[k]
   }
@@ -190,15 +190,15 @@ func filterKeys(song common.SongMap) common.SongMap {
 //
 ////////////////////////////////////////////////////////////////////////
 
-func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist {
+func songMapsToArtistMap(songMaps tags.TagMapSlice) map[string]common.Artist {
   artists := make(map[string]common.Artist)
   // Build a map of artists.
   for _, sm := range(songMaps) {
-    name := sm[common.ArtistKey]
+    name := sm[tags.ArtistKey]
     if _, present := artists[name]; !present {
       var artist common.Artist
       artist.Name = name
-      artist.SortName = sm[common.ArtistSortKey]
+      artist.SortName = sm[tags.ArtistSortKey]
       artist.Albums = make(map[string]*common.Album)
       artists[name] = artist
     }
@@ -207,13 +207,13 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
   // Build the maps of albums.
   numAlbums := 0
   for _, sm := range(songMaps) {
-    name := sm[common.ArtistKey]
+    name := sm[tags.ArtistKey]
     artist := artists[name]
-    albumTitle := sm[common.AlbumKey]
+    albumTitle := sm[tags.AlbumKey]
     if _, present := artist.Albums[albumTitle]; !present {
       album := new(common.Album)
       album.Title = albumTitle
-      album.SortTitle = sm[common.AlbumSortKey]
+      album.SortTitle = sm[tags.AlbumSortKey]
       album.Songs = make([]*common.Song, 0, 100)
       artist.Albums[albumTitle] = album
       numAlbums++
@@ -222,25 +222,25 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
   fmt.Printf("Found %d albums.\n", numAlbums)
   // Build the lists of songs.  Note that we assume the songMap slice is sorted.
   for _, sm := range(songMaps) {
-    name := sm[common.ArtistKey]
+    name := sm[tags.ArtistKey]
     artist := artists[name]
-    albumTitle := sm[common.AlbumKey]
+    albumTitle := sm[tags.AlbumKey]
     album := artist.Albums[albumTitle]
     song := new(common.Song)
-    song.Title = sm[common.TitleKey]
-    song.TrackNumber = btu.Atoi(sm[common.TrackNumberKey])
-    song.DiscNumber = btu.Atoi(sm[common.DiscNumberKey])
-    song.Duration = sm[common.DurationKey]
-    song.Mime = sm[common.MimeKey]
-    song.Extension = sm[common.ExtensionKey]
-    song.EncodedExtension = sm[common.EncodedExtensionKey]
-    song.RelativePath = sm[common.RelativePathKey]
-    song.BasePath = sm[common.BasePathKey]
-    song.IsEncoded, _ = strconv.ParseBool(sm[common.IsEncodedKey])
-    song.Flags = sm[common.FlagsKey]
-    song.Md5 = sm[common.Md5Key]
-    song.SizeAndTime = sm[common.SizeAndTimeKey]
-    song.EncodedSource = sm[common.EncodedSourceKey]
+    song.Title = sm[tags.TitleKey]
+    song.TrackNumber = btu.Atoi(sm[tags.TrackNumberKey])
+    song.DiscNumber = btu.Atoi(sm[tags.DiscNumberKey])
+    song.Duration = sm[tags.DurationKey]
+    song.Mime = sm[tags.MimeKey]
+    song.Extension = sm[tags.ExtensionKey]
+    song.EncodedExtension = sm[tags.EncodedExtensionKey]
+    song.RelativePath = sm[tags.RelativePathKey]
+    song.BasePath = sm[tags.BasePathKey]
+    song.IsEncoded, _ = strconv.ParseBool(sm[tags.IsEncodedKey])
+    song.Flags = sm[tags.FlagsKey]
+    song.Md5 = sm[tags.Md5Key]
+    song.SizeAndTime = sm[tags.SizeAndTimeKey]
+    song.EncodedSource = sm[tags.EncodedSourceKey]
     album.Songs = append(album.Songs, song)
   }
   // Sort the song slice for each album.
@@ -252,30 +252,30 @@ func songMapsToArtistMap(songMaps common.SongMapSlice) map[string]common.Artist 
   return artists
 }
 
-func artistMapToSongMaps(artistMap map[string]common.Artist) common.SongMapSlice {
-  songMaps := make(common.SongMapSlice, 0, 5000)
+func artistMapToSongMaps(artistMap map[string]common.Artist) tags.TagMapSlice {
+  songMaps := make(tags.TagMapSlice, 0, 5000)
   for _, artist := range(artistMap) {
     for _, album := range(artist.Albums) {
       for _, song := range(album.Songs) {
-        songMap := make(common.SongMap, 0)
-        songMap[common.IdKey] = strconv.Itoa(song.Id)
-        songMap[common.TitleKey] = song.Title
-        songMap[common.ArtistKey] = artist.Name
-        songMap[common.AlbumKey] = album.Title
-        songMap[common.TrackNumberKey] = strconv.Itoa(song.TrackNumber)
-        songMap[common.DiscNumberKey] = strconv.Itoa(song.DiscNumber)
-        songMap[common.ArtistSortKey] = artist.SortName
-        songMap[common.AlbumSortKey] = album.SortTitle
-        songMap[common.RelativePathKey] = song.RelativePath
-        songMap[common.BasePathKey] = song.BasePath
-        songMap[common.MimeKey] = song.Mime
-        songMap[common.ExtensionKey] = song.Extension
-        songMap[common.EncodedExtensionKey] = song.EncodedExtension
-        songMap[common.IsEncodedKey] = strconv.FormatBool(song.IsEncoded)
-        songMap[common.FlagsKey] = song.Flags
-        songMap[common.DurationKey] = song.Duration
-        songMap[common.Md5Key] = song.Md5
-        songMap[common.SizeAndTimeKey] = song.SizeAndTime
+        songMap := make(tags.TagMap, 0)
+        songMap[tags.IdKey] = strconv.Itoa(song.Id)
+        songMap[tags.TitleKey] = song.Title
+        songMap[tags.ArtistKey] = artist.Name
+        songMap[tags.AlbumKey] = album.Title
+        songMap[tags.TrackNumberKey] = strconv.Itoa(song.TrackNumber)
+        songMap[tags.DiscNumberKey] = strconv.Itoa(song.DiscNumber)
+        songMap[tags.ArtistSortKey] = artist.SortName
+        songMap[tags.AlbumSortKey] = album.SortTitle
+        songMap[tags.RelativePathKey] = song.RelativePath
+        songMap[tags.BasePathKey] = song.BasePath
+        songMap[tags.MimeKey] = song.Mime
+        songMap[tags.ExtensionKey] = song.Extension
+        songMap[tags.EncodedExtensionKey] = song.EncodedExtension
+        songMap[tags.IsEncodedKey] = strconv.FormatBool(song.IsEncoded)
+        songMap[tags.FlagsKey] = song.Flags
+        songMap[tags.DurationKey] = song.Duration
+        songMap[tags.Md5Key] = song.Md5
+        songMap[tags.SizeAndTimeKey] = song.SizeAndTime
         songMaps = append(songMaps, songMap)
       }
     }
@@ -290,8 +290,8 @@ func artistMapToSongMaps(artistMap map[string]common.Artist) common.SongMapSlice
 //
 ////////////////////////////////////////////////////////////////////////
 
-func loadSongsFromYaml(path string) common.SongMapSlice {
-  songMaps := make(common.SongMapSlice, 0, 5000)
+func loadSongsFromYaml(path string) tags.TagMapSlice {
+  songMaps := make(tags.TagMapSlice, 0, 5000)
   // logic came from https://zetcode.com/golang/yaml/
   yfile, err := ioutil.ReadFile(path)
   btu.CheckError(err)
@@ -300,7 +300,7 @@ func loadSongsFromYaml(path string) common.SongMapSlice {
   return songMaps
 }
 
-func saveSongsToYaml(path string, songMaps common.SongMapSlice) {
+func saveSongsToYaml(path string, songMaps tags.TagMapSlice) {
   fmt.Printf("Saving yaml in '%s'\n", path)
   data, err := yaml.Marshal(&songMaps)
   btu.CheckError(err)

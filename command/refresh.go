@@ -3,7 +3,7 @@ package command
 import (
   "fmt"
   "github.com/urfave/cli/v2"
-  "github.com/brothertoad/musiclib/common"
+  "github.com/brothertoad/tags"
 )
 
 var RefreshCommand = cli.Command {
@@ -28,16 +28,16 @@ func doRefresh(c *cli.Context) error {
   return nil
 }
 
-func songMapSliceToSizeAndTimeMap(s common.SongMapSlice) map[string]common.SongMap {
-  md5Map := make(map[string]common.SongMap, len(s))
+func songMapSliceToSizeAndTimeMap(s tags.TagMapSlice) map[string]tags.TagMap {
+  md5Map := make(map[string]tags.TagMap, len(s))
   for _, songMap := range(s) {
-    md5Map[songMap[common.SizeAndTimeKey]] = songMap
+    md5Map[songMap[tags.SizeAndTimeKey]] = songMap
   }
   return md5Map
 }
 
-func findMissing(src, dest map[string]common.SongMap) map[string]common.SongMap {
-  list := make(map[string]common.SongMap, len(src))
+func findMissing(src, dest map[string]tags.TagMap) map[string]tags.TagMap {
+  list := make(map[string]tags.TagMap, len(src))
   for srcSizeAndTime, srcSongMap := range(src) {
     _, present := dest[srcSizeAndTime]
     if !present {

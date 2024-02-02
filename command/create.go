@@ -4,7 +4,7 @@ import (
   "fmt"
   "sort"
   "github.com/urfave/cli/v2"
-  "github.com/brothertoad/musiclib/common"
+  "github.com/brothertoad/tags"
 )
 
 const saveFlag = "save"
@@ -22,7 +22,7 @@ var CreateCommand = cli.Command {
 
 func doCreate(c *cli.Context) error {
   fmt.Printf("Creating database from directory %s...\n", config.MusicDir)
-  var songMaps common.SongMapSlice
+  var songMaps tags.TagMapSlice
 
   // If the load flag was specified, load from a file, rather than walking
   // through the entire music directory.

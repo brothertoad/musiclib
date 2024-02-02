@@ -5,6 +5,7 @@ import (
   "strconv"
   _ "github.com/jackc/pgx/v4/stdlib"
   "github.com/brothertoad/btu"
+  "github.com/brothertoad/tags"
   "github.com/brothertoad/musiclib/common"
 )
 
@@ -130,7 +131,7 @@ func readSongListFromDb(db *sql.DB) []common.Song {
   return songs
 }
 
-func addSongsToDb(db *sql.DB, songMaps map[string]common.SongMap) {
+func addSongsToDb(db *sql.DB, songMaps map[string]tags.TagMap) {
   artistQueryStmt, artistQueryErr := db.Prepare("select id from artists where name = $1")
   btu.CheckError(artistQueryErr)
   defer artistQueryStmt.Close()
@@ -157,34 +158,34 @@ func addSongsToDb(db *sql.DB, songMaps map[string]common.SongMap) {
   // exist.  If not, we need to add them.
   for _, songMap := range(songMaps) {
     var artistId int
-    err := artistQueryStmt.QueryRow(songMap[common.ArtistKey]).Scan(&artistId)
+    err := artistQueryStmt.QueryRow(songMap[tags.ArtistKey]).Scan(&artistId)
     if err != nil && err != sql.ErrNoRows {
       btu.CheckError(err)
     }
     if err != nil {
       // err must be ErrNoRows, so the artist needs to be added.
-      err := artistInsertStmt.QueryRow(songMap[common.ArtistKey], songMap[common.ArtistSortKey]).Scan(&artistId)
+      err := artistInsertStmt.QueryRow(songMap[tags.ArtistKey], songMap[tags.ArtistSortKey]).Scan(&artistId)
       btu.CheckError(err)
     }
     var albumId int
-    err = albumQueryStmt.QueryRow(artistId, songMap[common.AlbumKey]).Scan(&albumId)
+    err = albumQueryStmt.QueryRow(artistId, songMap[tags.AlbumKey]).Scan(&albumId)
     if err != nil && err != sql.ErrNoRows {
       btu.CheckError(err)
     }
     if err != nil {
       // err must be ErrNoRows, so the album needs to be added.
-      err := albumInsertStmt.QueryRow(artistId, songMap[common.AlbumKey], songMap[common.AlbumSortKey]).Scan(&albumId)
+      err := albumInsertStmt.QueryRow(artistId, songMap[tags.AlbumKey], songMap[tags.AlbumSortKey]).Scan(&albumId)
       btu.CheckError(err)
     }
     // Now we can add the song.
     var songId int
-    trackNumber := btu.Atoi(songMap[common.TrackNumberKey])
-    discNumber := btu.Atoi(songMap[common.DiscNumberKey])
-    isEncoded, _ := strconv.ParseBool(songMap[common.IsEncodedKey])
-    err = songInsertStmt.QueryRow(albumId, songMap[common.TitleKey], trackNumber, discNumber,
-      songMap[common.DurationKey], songMap[common.FlagsKey], songMap[common.RelativePathKey],
-      songMap[common.BasePathKey], songMap[common.MimeKey], songMap[common.ExtensionKey],
-      songMap[common.EncodedExtensionKey], isEncoded, songMap[common.Md5Key], songMap[common.SizeAndTimeKey]).Scan(&songId)
+    trackNumber := btu.Atoi(songMap[tags.TrackNumberKey])
+    discNumber := btu.Atoi(songMap[tags.DiscNumberKey])
+    isEncoded, _ := strconv.ParseBool(songMap[tags.IsEncodedKey])
+    err = songInsertStmt.QueryRow(albumId, songMap[tags.TitleKey], trackNumber, discNumber,
+      songMap[tags.DurationKey], songMap[tags.FlagsKey], songMap[tags.RelativePathKey],
+      songMap[tags.BasePathKey], songMap[tags.MimeKey], songMap[tags.ExtensionKey],
+      songMap[tags.EncodedExtensionKey], isEncoded, songMap[tags.Md5Key], songMap[tags.SizeAndTimeKey]).Scan(&songId)
     btu.CheckError(err)
   }
 }
@@ -194,14 +195,14 @@ func updateSongEncodedSource(db *sql.DB, song common.Song) {
   btu.CheckError(err)
 }
 
-func deleteSongsFromDb(db *sql.DB, songMaps map[string]common.SongMap) {
+func deleteSongsFromDb(db *sql.DB, songMaps map[string]tags.TagMap) {
   deleteStmt, deleteErr := db.Prepare("delete from songs where id = $1")
   btu.CheckError(deleteErr)
   defer deleteStmt.Close()
 
   for _, songMap := range(songMaps) {
     // Have to convert the id value in the SongMap from a string to an int.
-    id := btu.Atoi(songMap[common.IdKey])
+    id := btu.Atoi(songMap[tags.IdKey])
     _, err := deleteStmt.Exec(id)
     btu.CheckError(err)
   }
