@@ -19,25 +19,6 @@ import (
   "github.com/brothertoad/musiclib/common"
 )
 
-var keyTranslations = map[string]string {
-  "\xa9nam": tags.TitleKey,
-  "\xa9ART" : tags.ArtistKey,
-  "\xa9alb" : tags.AlbumKey,
-  "soar" : tags.ArtistSortKey,
-  "soal" : tags.AlbumSortKey,
-  "ALBUM" : tags.AlbumKey,
-  "ARTIST" : tags.ArtistKey,
-  "TITLE" : tags.TitleKey,
-  "trkn" : tags.TrackNumberKey,
-  "disk" : tags.DiscNumberKey,
-  "tracknumber" : tags.TrackNumberKey,
-  "TRACKNUMBER" : tags.TrackNumberKey,
-  "DISKNUMBER" : tags.DiscNumberKey,
-  "TIT2" : tags.TitleKey,
-  "TPE1" : tags.ArtistKey,
-  "TALB" : tags.AlbumKey,
-}
-
 // In addition to being required, these are the only keys we save in the yaml file.
 var requiredKeys = []string {
   tags.TitleKey, tags.ArtistKey, tags.AlbumKey, tags.TrackNumberKey, tags.DiscNumberKey,
@@ -58,13 +39,12 @@ func loadSongMapSliceFromMusicDir() tags.TagMapSlice {
     if de.IsDir() {
       return nil
     }
-    song := tags.GetTagsFromFile(path)
+    song := tags.GetStandardTagsFromFile(path)
     if song == nil || len(song) == 0 {
       return nil
     }
     setPaths(song, path)
     song[tags.FlagsKey] = tags.EncodeFlag
-    translateKeys(song)
     addSortKeys(song)
     addMd5Key(song)
     info, err := de.Info()
@@ -85,37 +65,6 @@ func setPaths(song tags.TagMap, path string) {
   pathLength := len(relativePath)
   extLength := len(song[tags.ExtensionKey])
   song[tags.BasePathKey] = relativePath[0:(pathLength-extLength)]
-}
-
-// Replace keys with standard names.
-func translateKeys(song tags.TagMap) {
-  for k, v := range song {
-    if trans, present := keyTranslations[k]; present {
-      delete(song, k)
-      song[trans] = v
-    }
-  }
-  // Check for the track number.  If it doesn't exist, see if it has the TRCK tag, which
-  // is track number / track total and get the track number from that.
-  if _, present := song[tags.TrackNumberKey]; !present {
-    if tntt, tnttPresent := song["TRCK"]; tnttPresent {
-      s := strings.Split(tntt, "/")
-      song[tags.TrackNumberKey] = s[0]
-    } else {
-      log.Printf("Can't get track number for '%s'\n", song[tags.RelativePathKey])
-    }
-  }
-  // Check for the disc number.  If it doesn't exist, see if it has the TPOS tag, which
-  // is disc number / disc total and get the disc number from that.  If that doesn't
-  // exist, assume disc 1.
-  if _, present := song[tags.DiscNumberKey]; !present {
-    if dndt, dndtPresent := song["TPOS"]; dndtPresent {
-      s := strings.Split(dndt, "/")
-      song[tags.DiscNumberKey] = s[0]
-    } else {
-      song[tags.DiscNumberKey] = "1"
-    }
-  }
 }
 
 func addSortKeys(song tags.TagMap) {
