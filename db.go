@@ -1,4 +1,4 @@
-package command
+package main
 
 import (
   "database/sql"
@@ -6,7 +6,6 @@ import (
   _ "github.com/jackc/pgx/v4/stdlib"
   "github.com/brothertoad/btu"
   "github.com/brothertoad/tags"
-  "github.com/brothertoad/musiclib/common"
 )
 
 func getDbConnection() *sql.DB {
@@ -15,7 +14,7 @@ func getDbConnection() *sql.DB {
   return db
 }
 
-func addArtistMapToDb(db *sql.DB, m map[string]common.Artist) {
+func addArtistMapToDb(db *sql.DB, m map[string]Artist) {
   artistStmt, artistErr := db.Prepare("insert into artists(name, sort_name) values ($1, $2) returning id")
   btu.CheckError(artistErr)
   defer artistStmt.Close()
@@ -52,7 +51,7 @@ func addArtistMapToDb(db *sql.DB, m map[string]common.Artist) {
   }
 }
 
-func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
+func readArtistMapFromDb(db *sql.DB) map[string]Artist {
   artistStmt, artistErr := db.Prepare("select id, name, sort_name from artists")
   btu.CheckError(artistErr)
   defer artistStmt.Close()
@@ -74,29 +73,29 @@ func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
   totalAlbums := 0
   totalSongs := 0
 
-  artistMap := make(map[string]common.Artist, 1000)
+  artistMap := make(map[string]Artist, 1000)
   for artistRows.Next() {
-    var artist common.Artist
+    var artist Artist
     err := artistRows.Scan(&artist.Id, &artist.Name, &artist.SortName)
     btu.CheckError(err)
-    artist.Albums = make(map[string]*common.Album)
+    artist.Albums = make(map[string]*Album)
     artistMap[artist.Name] = artist
     totalArtists++
 
     albumRows, albumErr := albumStmt.Query(artist.Id)
     btu.CheckError(albumErr)
     for albumRows.Next() {
-      album := new(common.Album)
+      album := new(Album)
       err := albumRows.Scan(&album.Id, &album.Title, &album.SortTitle)
       btu.CheckError(err)
-      album.Songs = make([]*common.Song, 0, 100)
+      album.Songs = make([]*Song, 0, 100)
       artist.Albums[album.Title] = album
       totalAlbums++
 
       songRows, songErr := songStmt.Query(album.Id)
       btu.CheckError(songErr)
       for songRows.Next() {
-        song := new(common.Song)
+        song := new(Song)
         err := songRows.Scan(&song.Id, &song.Title, &song.TrackNumber,
           &song.DiscNumber, &song.Duration, &song.Flags, &song.RelativePath, &song.BasePath,
           &song.Mime, &song.Extension, &song.EncodedExtension, &song.IsEncoded,
@@ -110,8 +109,8 @@ func readArtistMapFromDb(db *sql.DB) map[string]common.Artist {
   return artistMap
 }
 
-func readSongListFromDb(db *sql.DB) []common.Song {
-  songs := make([]common.Song, 0, 5000)
+func readSongListFromDb(db *sql.DB) []Song {
+  songs := make([]Song, 0, 5000)
   stmt, err := db.Prepare(`select id, title, track_number, disc_number, duration,
     flags, relative_path, base_path, mime, extension, encoded_extension,
     is_encoded, md5, size_and_time, encoded_source, sublibs from songs`)
@@ -120,7 +119,7 @@ func readSongListFromDb(db *sql.DB) []common.Song {
   rows, err := stmt.Query()
   btu.CheckError(err)
   for rows.Next() {
-    var song common.Song
+    var song Song
     err := rows.Scan(&song.Id, &song.Title, &song.TrackNumber,
       &song.DiscNumber, &song.Duration, &song.Flags, &song.RelativePath, &song.BasePath,
       &song.Mime, &song.Extension, &song.EncodedExtension, &song.IsEncoded,
@@ -190,7 +189,7 @@ func addSongsToDb(db *sql.DB, songMaps map[string]tags.TagMap) {
   }
 }
 
-func updateSongEncodedSource(db *sql.DB, song common.Song) {
+func updateSongEncodedSource(db *sql.DB, song Song) {
   _, err := db.Exec("update songs set encoded_source = $1 where id = $2", song.EncodedSource, song.Id)
   btu.CheckError(err)
 }

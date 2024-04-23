@@ -4,7 +4,6 @@ import (
   "os"
   "time"
   "github.com/urfave/cli/v2"
-  "github.com/brothertoad/musiclib/command"
 )
 
 // Program for maintaining the music library database.  First non-option argument is a command.
@@ -30,11 +29,11 @@ func main() {
       &cli.StringFlag {Name: "log-level"},
     },
     Commands: []*cli.Command {
-      &command.CreateCommand,
-      &command.RefreshCommand,
-      &command.EncodeCommand,
+      &CreateCommand,
+      &RefreshCommand,
+      &EncodeCommand,
     },
-    Before: command.Init,
+    Before: Init,
   }
   app.Run(os.Args)
 }

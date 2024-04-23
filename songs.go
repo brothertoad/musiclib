@@ -1,4 +1,4 @@
-package command
+package main
 
 import (
   "encoding/hex"
@@ -16,7 +16,6 @@ import (
   "gopkg.in/yaml.v3"
   "github.com/brothertoad/btu"
   "github.com/brothertoad/tags"
-  "github.com/brothertoad/musiclib/common"
 )
 
 // In addition to being required, these are the only keys we save in the yaml file.
@@ -139,16 +138,16 @@ func filterKeys(song tags.TagMap) tags.TagMap {
 //
 ////////////////////////////////////////////////////////////////////////
 
-func songMapsToArtistMap(songMaps tags.TagMapSlice) map[string]common.Artist {
-  artists := make(map[string]common.Artist)
+func songMapsToArtistMap(songMaps tags.TagMapSlice) map[string]Artist {
+  artists := make(map[string]Artist)
   // Build a map of artists.
   for _, sm := range(songMaps) {
     name := sm[tags.ArtistKey]
     if _, present := artists[name]; !present {
-      var artist common.Artist
+      var artist Artist
       artist.Name = name
       artist.SortName = sm[tags.ArtistSortKey]
-      artist.Albums = make(map[string]*common.Album)
+      artist.Albums = make(map[string]*Album)
       artists[name] = artist
     }
   }
@@ -160,10 +159,10 @@ func songMapsToArtistMap(songMaps tags.TagMapSlice) map[string]common.Artist {
     artist := artists[name]
     albumTitle := sm[tags.AlbumKey]
     if _, present := artist.Albums[albumTitle]; !present {
-      album := new(common.Album)
+      album := new(Album)
       album.Title = albumTitle
       album.SortTitle = sm[tags.AlbumSortKey]
-      album.Songs = make([]*common.Song, 0, 100)
+      album.Songs = make([]*Song, 0, 100)
       artist.Albums[albumTitle] = album
       numAlbums++
     }
@@ -175,7 +174,7 @@ func songMapsToArtistMap(songMaps tags.TagMapSlice) map[string]common.Artist {
     artist := artists[name]
     albumTitle := sm[tags.AlbumKey]
     album := artist.Albums[albumTitle]
-    song := new(common.Song)
+    song := new(Song)
     song.Title = sm[tags.TitleKey]
     song.TrackNumber = btu.Atoi(sm[tags.TrackNumberKey])
     song.DiscNumber = btu.Atoi(sm[tags.DiscNumberKey])
@@ -195,13 +194,13 @@ func songMapsToArtistMap(songMaps tags.TagMapSlice) map[string]common.Artist {
   // Sort the song slice for each album.
   for _, artist := range(artists) {
     for _, album := range(artist.Albums) {
-      common.SortSongSlice(album.Songs)
+      SortSongSlice(album.Songs)
     }
   }
   return artists
 }
 
-func artistMapToSongMaps(artistMap map[string]common.Artist) tags.TagMapSlice {
+func artistMapToSongMaps(artistMap map[string]Artist) tags.TagMapSlice {
   songMaps := make(tags.TagMapSlice, 0, 5000)
   for _, artist := range(artistMap) {
     for _, album := range(artist.Albums) {

@@ -1,4 +1,4 @@
-package command
+package main
 
 import (
   "fmt"
@@ -12,7 +12,6 @@ import (
   "strconv"
   "github.com/urfave/cli/v2"
   "github.com/brothertoad/btu"
-  "github.com/brothertoad/musiclib/common"
 )
 
 var EncodeCommand = cli.Command {
@@ -89,7 +88,7 @@ func validateEncoders() {
   }
 }
 
-func copySong(song common.Song) {
+func copySong(song Song) {
   src := path.Join(config.MusicDir, song.RelativePath)
   for _, encoder := range(config.Encoders) {
     // We only copy the file if the extension is the same as the encoder,
@@ -106,7 +105,7 @@ func copySong(song common.Song) {
   }
 }
 
-func encodeSong(song common.Song) {
+func encodeSong(song Song) {
   fmt.Printf("Encoding %s...\n", song.RelativePath)
   inputPath := path.Join(config.MusicDir, song.RelativePath)
   for _, encoder := range(config.Encoders) {
