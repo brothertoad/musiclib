@@ -37,6 +37,9 @@ func doServe(c *cli.Context) error {
   e.GET("/albums/:artistId/:state", func(c echo.Context) error {
 		return getAlbums(c, db)
 	})
+  e.GET("/songs/:albumId/:state", func(c echo.Context) error {
+		return getSongs(c, db)
+	})
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", port)))
   return nil
@@ -50,7 +53,7 @@ func getArtists(c echo.Context, db *sql.DB) error {
   }
   artists, err := loadArtists(db, state)
   if err != nil {
-    return c.String(http.StatusBadRequest, "error loading artists by state")
+    return c.String(http.StatusBadRequest, "error loading artists by state\n")
   }
   return c.JSON(http.StatusOK, artists)
 }
@@ -68,7 +71,25 @@ func getAlbums(c echo.Context, db *sql.DB) error {
   }
   artists, err := loadAlbums(db, artistId, state)
   if err != nil {
-    return c.String(http.StatusBadRequest, "error loading albums")
+    return c.String(http.StatusBadRequest, "error loading albums\n")
   }
   return c.JSON(http.StatusOK, artists)
+}
+
+func getSongs(c echo.Context, db *sql.DB) error {
+  albumString := c.Param("albumId")
+  albumId, err := strconv.Atoi(albumString)
+  if err != nil {
+    return c.String(http.StatusBadRequest, fmt.Sprintf("Can't convert albumId '%s' to a number\n", albumString))
+  }
+  stateString := c.Param("state")
+  state, err := strconv.Atoi(stateString)
+  if err != nil {
+    return c.String(http.StatusBadRequest, fmt.Sprintf("Can't convert state '%s' to a number\n", stateString))
+  }
+  songs, err := loadSongs(db, albumId, state)
+  if err != nil {
+    return c.String(http.StatusBadRequest, fmt.Sprintf("error loading songs: %s\n", err.Error()))
+  }
+  return c.JSON(http.StatusOK, songs)
 }
