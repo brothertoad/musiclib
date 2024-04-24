@@ -43,9 +43,11 @@ func getArtistsByState(c echo.Context, db *sql.DB) error {
   stateString := c.Param("state")
   state, err := strconv.Atoi(stateString)
   if err != nil {
-    c.String(http.StatusBadRequest, fmt.Sprintf("Can't convert state '%s' to a number\n", stateString))
-    return nil
+    return c.String(http.StatusBadRequest, fmt.Sprintf("Can't convert state '%s' to a number\n", stateString))
   }
-  c.String(http.StatusOK, fmt.Sprintf("state is %d\n", state))
-  return nil
+  artists, err := loadArtistsByState(db, state)
+  if err != nil {
+    return c.String(http.StatusBadRequest, "error loading artists by state")
+  }
+  return c.JSON(http.StatusOK, artists)
 }
