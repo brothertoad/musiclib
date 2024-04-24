@@ -32,14 +32,14 @@ func doServe(c *cli.Context) error {
   e.Use(middleware.CORS()) // allow all requests
 
   e.GET("/artists/:state", func(c echo.Context) error {
-		return getArtistsForREST(c, db)
+		return getArtistsByState(c, db)
 	})
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", port)))
   return nil
 }
 
-func getArtistsForREST(c echo.Context, db *sql.DB) error {
+func getArtistsByState(c echo.Context, db *sql.DB) error {
   stateString := c.Param("state")
   state, err := strconv.Atoi(stateString)
   if err != nil {
