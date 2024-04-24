@@ -27,6 +27,7 @@ type Song struct {
   BasePath string
   IsEncoded bool
   Flags string
+  State int
   SizeAndTime string
   Md5 string
   EncodedSource string

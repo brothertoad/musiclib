@@ -61,7 +61,7 @@ func readArtistMapFromDb(db *sql.DB) map[string]Artist {
   defer albumStmt.Close()
 
   songStmt, songErr := db.Prepare(`select id, title, track_number, disc_number, duration,
-    flags, relative_path, base_path, mime, extension, encoded_extension,
+    flags, state, relative_path, base_path, mime, extension, encoded_extension,
     is_encoded, md5, size_and_time, encoded_source, sublibs from songs where album = $1`)
   btu.CheckError(songErr)
   defer songStmt.Close()
@@ -97,7 +97,7 @@ func readArtistMapFromDb(db *sql.DB) map[string]Artist {
       for songRows.Next() {
         song := new(Song)
         err := songRows.Scan(&song.Id, &song.Title, &song.TrackNumber,
-          &song.DiscNumber, &song.Duration, &song.Flags, &song.RelativePath, &song.BasePath,
+          &song.DiscNumber, &song.Duration, &song.Flags, &song.State, &song.RelativePath, &song.BasePath,
           &song.Mime, &song.Extension, &song.EncodedExtension, &song.IsEncoded,
           &song.Md5, &song.SizeAndTime, &song.EncodedSource, &song.Sublibs)
         btu.CheckError(err)
@@ -112,7 +112,7 @@ func readArtistMapFromDb(db *sql.DB) map[string]Artist {
 func readSongListFromDb(db *sql.DB) []Song {
   songs := make([]Song, 0, 5000)
   stmt, err := db.Prepare(`select id, title, track_number, disc_number, duration,
-    flags, relative_path, base_path, mime, extension, encoded_extension,
+    flags, state, relative_path, base_path, mime, extension, encoded_extension,
     is_encoded, md5, size_and_time, encoded_source, sublibs from songs`)
   btu.CheckError(err)
   defer stmt.Close()
@@ -121,7 +121,7 @@ func readSongListFromDb(db *sql.DB) []Song {
   for rows.Next() {
     var song Song
     err := rows.Scan(&song.Id, &song.Title, &song.TrackNumber,
-      &song.DiscNumber, &song.Duration, &song.Flags, &song.RelativePath, &song.BasePath,
+      &song.DiscNumber, &song.Duration, &song.Flags, &song.State, &song.RelativePath, &song.BasePath,
       &song.Mime, &song.Extension, &song.EncodedExtension, &song.IsEncoded,
       &song.Md5, &song.SizeAndTime, &song.EncodedSource, &song.Sublibs)
     btu.CheckError(err)
