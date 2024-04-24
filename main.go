@@ -32,6 +32,7 @@ func main() {
       &CreateCommand,
       &RefreshCommand,
       &EncodeCommand,
+      &serveCommand,
     },
     Before: Init,
   }
