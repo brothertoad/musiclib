@@ -4,9 +4,8 @@ import (
   "database/sql"
 )
 
-func loadArtistsByState(db *sql.DB, state int) (*ArtistsResponse, error) {
-  resp := new(ArtistsResponse)
-  resp.Artists = make([]ArtistModel, 0)
+func loadArtistsByState(db *sql.DB, state int) ([]ArtistModel, error) {
+  resp := make([]ArtistModel, 0)
   stmt, err := db.Prepare("select id, name from artists where exists " +
     "(select * from albums where albums.artist = artists.id and exists " +
       "(select * from songs where songs.album = albums.id and state = $1)) order by sort_name")
@@ -24,7 +23,7 @@ func loadArtistsByState(db *sql.DB, state int) (*ArtistsResponse, error) {
     if err != nil {
       return resp, err
     }
-    resp.Artists = append(resp.Artists, artist)
+    resp = append(resp, artist)
   }
   return resp, nil
 }
