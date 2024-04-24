@@ -7,8 +7,9 @@ import (
 func loadArtistsByState(db *sql.DB, state int) (*ArtistsResponse, error) {
   resp := new(ArtistsResponse)
   resp.Artists = make([]ArtistModel, 0)
-  stmt, err := db.Prepare("select id, name, sort_name from artists where exists " +
-    "(select * from albums where albums.artist = artists.id and exists (select * from songs where songs.album = albums.id and state = $1))")
+  stmt, err := db.Prepare("select id, name from artists where exists " +
+    "(select * from albums where albums.artist = artists.id and exists " +
+      "(select * from songs where songs.album = albums.id and state = $1)) order by sort_name")
   if err != nil {
     return resp, err
   }
@@ -19,7 +20,7 @@ func loadArtistsByState(db *sql.DB, state int) (*ArtistsResponse, error) {
   }
   for rows.Next() {
     var artist ArtistModel
-    err := rows.Scan(&artist.Id, &artist.Name, &artist.SortName)
+    err := rows.Scan(&artist.Id, &artist.Name)
     if err != nil {
       return resp, err
     }
