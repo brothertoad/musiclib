@@ -17,7 +17,7 @@ create table songs (
 id int generated always as identity (start with 30001) primary key,
 album integer references albums on delete cascade,
 title text,
-sortTitle text,
+sort_title text,
 track_number integer,
 disc_number integer,
 duration text,
