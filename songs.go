@@ -43,7 +43,7 @@ func loadSongMapSliceFromMusicDir() tags.TagMapSlice {
       return nil
     }
     setPaths(song, path)
-    song[tags.FlagsKey] = tags.EncodeFlag
+    song[tags.FlagsKey] = ""
     addSortKeys(song)
     addMd5Key(song)
     info, err := de.Info()
