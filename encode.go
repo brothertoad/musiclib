@@ -14,7 +14,7 @@ import (
   "github.com/brothertoad/btu"
 )
 
-var EncodeCommand = cli.Command {
+var encodeCommand = cli.Command {
   Name: "encode",
   Usage: "encode the database",
   Action: doEncode,

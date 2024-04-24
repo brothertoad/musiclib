@@ -6,7 +6,7 @@ import (
   "github.com/brothertoad/tags"
 )
 
-var RefreshCommand = cli.Command {
+var refreshCommand = cli.Command {
   Name: "refresh",
   Usage: "refresh the database",
   Action: doRefresh,

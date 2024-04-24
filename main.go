@@ -29,9 +29,9 @@ func main() {
       &cli.StringFlag {Name: "log-level"},
     },
     Commands: []*cli.Command {
-      &CreateCommand,
-      &RefreshCommand,
-      &EncodeCommand,
+      &createCommand,
+      &refreshCommand,
+      &encodeCommand,
       &serveCommand,
     },
     Before: Init,

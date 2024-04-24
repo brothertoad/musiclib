@@ -10,7 +10,7 @@ import (
 const saveFlag = "save"
 const loadFlag = "load"
 
-var CreateCommand = cli.Command {
+var createCommand = cli.Command {
   Name: "create",
   Usage: "create (or recreate) the database",
   Action: doCreate,
