@@ -15,3 +15,8 @@ type SongModel struct {
   TrackNum int `json:"trackNum"`
   Title string `json:"title"`
 }
+
+type UpdateSongStatesModel struct {
+  State int `json:"state"`
+  SongIds []int `json:"songIds"`
+}

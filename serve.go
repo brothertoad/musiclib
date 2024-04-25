@@ -40,6 +40,9 @@ func doServe(c *cli.Context) error {
   e.GET("/songs/:albumId/:state", func(c echo.Context) error {
 		return getSongs(c, db)
 	})
+  e.POST("/updatesongs", func(c echo.Context) error {
+		return updateSongStates(c, db)
+	})
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", port)))
   return nil
@@ -92,4 +95,13 @@ func getSongs(c echo.Context, db *sql.DB) error {
     return c.String(http.StatusBadRequest, fmt.Sprintf("error loading songs: %s\n", err.Error()))
   }
   return c.JSON(http.StatusOK, songs)
+}
+
+func updateSongStates(c echo.Context, db *sql.DB) error {
+  updateModel := new(UpdateSongStatesModel)
+  if err := c.Bind(updateModel); err != nil {
+    return c.String(http.StatusBadRequest, fmt.Sprintf("Error binding body: %s\n", err.Error()))
+  }
+  fmt.Printf("updateModel: %v\n", *updateModel)
+  return c.String(http.StatusOK, "")
 }
