@@ -78,9 +78,9 @@ func loadSongs(db *sql.DB, albumId, state int) ([]SongModel, error) {
   var stmt *sql.Stmt
   var err error
   if state != 0 {
-    stmt, err = db.Prepare("select id, track_number, title from songs where album = $1 and state = $2 order by sort_title")
+    stmt, err = db.Prepare("select id, track_number, title from songs where album = $1 and state = $2 order by track_number")
   } else {
-    stmt, err = db.Prepare("select id, track_number, title from songs where album = $1 order by sort_title")
+    stmt, err = db.Prepare("select id, track_number, title from songs where album = $1 order by track_number")
   }
   if err != nil {
     return resp, err
@@ -104,4 +104,14 @@ func loadSongs(db *sql.DB, albumId, state int) ([]SongModel, error) {
     resp = append(resp, song)
   }
   return resp, nil
+}
+
+func loadSongStates(db *sql.DB, req *UpdateSongStatesModel) error {
+  for _, songId := range(req.SongIds) {
+    _, err := db.Exec("update songs set state = $1 where id = $2", req.State, songId)
+    if err != nil {
+      return err
+    }
+  }
+  return nil
 }

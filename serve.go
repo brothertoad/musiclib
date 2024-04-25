@@ -102,6 +102,8 @@ func updateSongStates(c echo.Context, db *sql.DB) error {
   if err := c.Bind(updateModel); err != nil {
     return c.String(http.StatusBadRequest, fmt.Sprintf("Error binding body: %s\n", err.Error()))
   }
-  fmt.Printf("updateModel: %v\n", *updateModel)
+  if err := loadSongStates(db, updateModel); err != nil {
+    return c.String(http.StatusInternalServerError, fmt.Sprintf("Error updating song states: %s\n", err.Error()))
+  }
   return c.String(http.StatusOK, "")
 }
