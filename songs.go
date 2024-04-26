@@ -38,7 +38,6 @@ func loadSongMapSliceFromMusicDir() tags.TagMapSlice {
     if de.IsDir() {
       return nil
     }
-    fmt.Printf("getting tags from %s\n", path)
     song := tags.GetStandardTagsFromFile(path)
     if song == nil || len(song) == 0 {
       return nil
