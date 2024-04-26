@@ -138,7 +138,7 @@ func filterKeys(song tags.TagMap) tags.TagMap {
 //
 ////////////////////////////////////////////////////////////////////////
 
-func songMapsToArtistMap(songMaps tags.TagMapSlice, verbose bool) map[string]Artist {
+func songMapsToArtistMap(songMaps tags.TagMapSlice, printStats bool) map[string]Artist {
   artists := make(map[string]Artist)
   // Build a map of artists.
   for _, sm := range(songMaps) {
@@ -151,7 +151,7 @@ func songMapsToArtistMap(songMaps tags.TagMapSlice, verbose bool) map[string]Art
       artists[name] = artist
     }
   }
-  if verbose {
+  if printStats {
     fmt.Printf("Found %d artists.\n", len(artists))
   }
   // Build the maps of albums.
@@ -169,7 +169,7 @@ func songMapsToArtistMap(songMaps tags.TagMapSlice, verbose bool) map[string]Art
       numAlbums++
     }
   }
-  if verbose {
+  if printStats {
     fmt.Printf("Found %d albums.\n", numAlbums)
   }
   // Build the lists of songs.  Note that we assume the songMap slice is sorted.
