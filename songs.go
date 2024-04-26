@@ -38,6 +38,7 @@ func loadSongMapSliceFromMusicDir() tags.TagMapSlice {
     if de.IsDir() {
       return nil
     }
+    fmt.Printf("getting tags from %s\n", path)
     song := tags.GetStandardTagsFromFile(path)
     if song == nil || len(song) == 0 {
       return nil
@@ -176,8 +177,8 @@ func songMapsToArtistMap(songMaps tags.TagMapSlice) map[string]Artist {
     album := artist.Albums[albumTitle]
     song := new(Song)
     song.Title = sm[tags.TitleKey]
-    song.TrackNumber = btu.Atoi(sm[tags.TrackNumberKey])
-    song.DiscNumber = btu.Atoi(sm[tags.DiscNumberKey])
+    song.TrackNumber = btu.Atoi2(sm[tags.TrackNumberKey], "Error getting track number for %s\n", song.Title)
+    song.DiscNumber = btu.Atoi2(sm[tags.DiscNumberKey], "Error getting disc number for %s\n", song.Title)
     song.Duration = sm[tags.DurationKey]
     song.Mime = sm[tags.MimeKey]
     song.Extension = sm[tags.ExtensionKey]
