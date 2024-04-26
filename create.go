@@ -9,6 +9,7 @@ import (
 
 const saveFlag = "save"
 const loadFlag = "load"
+const statsFlag = "stats"
 
 var createCommand = cli.Command {
   Name: "create",
@@ -17,11 +18,15 @@ var createCommand = cli.Command {
   Flags: []cli.Flag {
     &cli.StringFlag {Name: saveFlag},
     &cli.StringFlag {Name: loadFlag},
+    &cli.BoolFlag {Name: statsFlag},
   },
 }
 
 func doCreate(c *cli.Context) error {
-  fmt.Printf("Creating database from directory %s...\n", config.MusicDir)
+  verbose := c.Bool(verboseFlag)
+  if verbose {
+    fmt.Printf("Creating database from directory %s...\n", config.MusicDir)
+  }
   var songMaps tags.TagMapSlice
 
   // If the load flag was specified, load from a file, rather than walking
@@ -38,9 +43,12 @@ func doCreate(c *cli.Context) error {
     saveSongsToYaml(c.String(saveFlag), songMaps)
   }
 
-  fmt.Printf("Found %d songs.\n", len(songMaps))
+  stats := c.Bool(statsFlag)
+  if stats {
+    fmt.Printf("Found %d songs.\n", len(songMaps))
+  }
   db := getDbConnection()
   defer db.Close()
-  addArtistMapToDb(db, songMapsToArtistMap(songMaps))
+  addArtistMapToDb(db, songMapsToArtistMap(songMaps, stats))
   return nil
 }
