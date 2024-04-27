@@ -11,6 +11,7 @@ const saveFlag = "save"
 const loadFlag = "load"
 const statsFlag = "stats"
 const dryRunFlag = "dry-run"
+const csvFlag = "csv"
 
 var createCommand = cli.Command {
   Name: "create",
@@ -18,6 +19,7 @@ var createCommand = cli.Command {
   Action: doCreate,
   Flags: []cli.Flag {
     &cli.StringFlag {Name: saveFlag},
+    &cli.StringFlag {Name: csvFlag},
     &cli.StringFlag {Name: loadFlag},
     &cli.BoolFlag {Name: statsFlag},
     &cli.BoolFlag {Name: dryRunFlag, Aliases: []string{"n"}},
@@ -39,6 +41,11 @@ func doCreate(c *cli.Context) error {
     songMaps = loadSongMapSliceFromMusicDir()
   }
   sort.Sort(songMaps)
+
+  // If the csv flag was specified, then save the songs as a CSV file.
+  if len(c.String(csvFlag)) > 0 {
+    saveSongsToCsv(c.String(csvFlag), songMaps)
+  }
 
   // Save if the save flag was specified.
   if len(c.String(saveFlag)) > 0 {

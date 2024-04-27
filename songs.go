@@ -259,3 +259,17 @@ func saveSongsToYaml(path string, songMaps tags.TagMapSlice) {
   err = ioutil.WriteFile(path, data, 0644)
   btu.CheckError(err)
 }
+
+////////////////////////////////////////////////////////////////////////
+//
+// Logic for writing a SongMapSlice to a CSV file.
+//
+////////////////////////////////////////////////////////////////////////
+
+func saveSongsToCsv(path string, songMaps tags.TagMapSlice) {
+  file := btu.CreateFile(path)
+  defer file.Close()
+  for _, m := range songMaps {
+    fmt.Fprintf(file, "%s,%s,%s,%s\n", m[tags.ArtistKey], m[tags.AlbumKey], m[tags.TrackNumberKey], m[tags.TitleKey])
+  }
+}
