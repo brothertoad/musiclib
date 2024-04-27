@@ -10,6 +10,7 @@ import (
 const saveFlag = "save"
 const loadFlag = "load"
 const statsFlag = "stats"
+const dryRunFlag = "dry-run"
 
 var createCommand = cli.Command {
   Name: "create",
@@ -19,6 +20,7 @@ var createCommand = cli.Command {
     &cli.StringFlag {Name: saveFlag},
     &cli.StringFlag {Name: loadFlag},
     &cli.BoolFlag {Name: statsFlag},
+    &cli.BoolFlag {Name: dryRunFlag, Aliases: []string{"n"}},
   },
 }
 
@@ -47,8 +49,10 @@ func doCreate(c *cli.Context) error {
   if stats {
     fmt.Printf("Found %d songs.\n", len(songMaps))
   }
-  db := getDbConnection()
-  defer db.Close()
-  addArtistMapToDb(db, songMapsToArtistMap(songMaps, stats))
+  if !c.Bool(dryRunFlag) {
+    db := getDbConnection()
+    defer db.Close()
+    addArtistMapToDb(db, songMapsToArtistMap(songMaps, stats))
+  }
   return nil
 }
