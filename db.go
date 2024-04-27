@@ -2,6 +2,7 @@ package main
 
 import (
   "database/sql"
+  "log"
   "strconv"
   _ "github.com/jackc/pgx/v4/stdlib"
   "github.com/brothertoad/btu"
@@ -32,7 +33,9 @@ func addArtistMapToDb(db *sql.DB, m map[string]Artist) {
   for _, artist := range(m) {
     var artistId int
     err := artistStmt.QueryRow(artist.Name, artist.SortName).Scan(&artistId)
-    btu.CheckError(err)
+    if err != nil {
+      log.Fatalf("addArtistMapToDb: Error inserting artist '%s', error is %s\n", artist.Name, err.Error())
+    }
     artist.Id = artistId
     for _, album := range(artist.Albums) {
       var albumId int
@@ -44,7 +47,9 @@ func addArtistMapToDb(db *sql.DB, m map[string]Artist) {
         err := songStmt.QueryRow(albumId, song.Title, song.TrackNumber, song.DiscNumber, song.Duration,
           song.Flags, song.RelativePath, song.BasePath, song.Mime, song.Extension, song.EncodedExtension,
           song.IsEncoded, song.Md5, song.SizeAndTime).Scan(&songId)
-        btu.CheckError(err)
+        if err != nil {
+          log.Fatalf("addArtistMapToDb: Error inserting song '%s', album '%s', artist '%s', error is %s\n", song.Title, album.Title, artist.Name, err.Error())
+        }
         song.Id = songId
       }
     }
