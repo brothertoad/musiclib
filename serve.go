@@ -32,78 +32,88 @@ func doServe(c *cli.Context) error {
   e.Use(middleware.CORS()) // allow all requests
 
   e.GET("/artists/:state", func(c echo.Context) error {
-		return getArtists(c, db)
+		return getArtists(e, c, db)
 	})
   e.GET("/albums/:artistId/:state", func(c echo.Context) error {
-		return getAlbums(c, db)
+		return getAlbums(e, c, db)
 	})
   e.GET("/songs/:albumId/:state", func(c echo.Context) error {
-		return getSongs(c, db)
+		return getSongs(e, c, db)
 	})
   e.POST("/updatesongs", func(c echo.Context) error {
-		return updateSongStates(c, db)
+		return updateSongStates(e, c, db)
 	})
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", port)))
   return nil
 }
 
-func getArtists(c echo.Context, db *sql.DB) error {
+func getArtists(e *echo.Echo, c echo.Context, db *sql.DB) error {
   stateString := c.Param("state")
   state, err := strconv.Atoi(stateString)
   if err != nil {
-    return c.String(http.StatusBadRequest, fmt.Sprintf("Can't convert state '%s' to a number\n", stateString))
+    e.Logger.Errorf("Can't convert state '%s' to a number\n", stateString)
+    return c.String(http.StatusBadRequest, "Can't convert state to a number\n")
   }
   artists, err := loadArtists(db, state)
   if err != nil {
-    return c.String(http.StatusBadRequest, "error loading artists by state\n")
+    e.Logger.Errorf("Error loading artists: %s\n", err.Error())
+    return c.String(http.StatusBadRequest, "Error loading artists\n")
   }
   return c.JSON(http.StatusOK, artists)
 }
 
-func getAlbums(c echo.Context, db *sql.DB) error {
+func getAlbums(e *echo.Echo, c echo.Context, db *sql.DB) error {
   artistString := c.Param("artistId")
   artistId, err := strconv.Atoi(artistString)
   if err != nil {
-    return c.String(http.StatusBadRequest, fmt.Sprintf("Can't convert artistId '%s' to a number\n", artistString))
+    e.Logger.Errorf("Can't convert artistId '%s' to a number\n", artistString)
+    return c.String(http.StatusBadRequest, "Can't convert artistId to a number\n")
   }
   stateString := c.Param("state")
   state, err := strconv.Atoi(stateString)
   if err != nil {
-    return c.String(http.StatusBadRequest, fmt.Sprintf("Can't convert state '%s' to a number\n", stateString))
+    e.Logger.Errorf("Can't convert state '%s' to a number\n", stateString)
+    return c.String(http.StatusBadRequest, "Can't convert state to a number\n")
   }
   artists, err := loadAlbums(db, artistId, state)
   if err != nil {
-    return c.String(http.StatusBadRequest, "error loading albums\n")
+    e.Logger.Errorf("Error loading albums: %s\n", err.Error())
+    return c.String(http.StatusBadRequest, "Error loading albums\n")
   }
   return c.JSON(http.StatusOK, artists)
 }
 
-func getSongs(c echo.Context, db *sql.DB) error {
+func getSongs(e *echo.Echo, c echo.Context, db *sql.DB) error {
   albumString := c.Param("albumId")
   albumId, err := strconv.Atoi(albumString)
   if err != nil {
-    return c.String(http.StatusBadRequest, fmt.Sprintf("Can't convert albumId '%s' to a number\n", albumString))
+    e.Logger.Errorf("Can't convert albumId '%s' to a number\n", albumString)
+    return c.String(http.StatusBadRequest, "Can't convert albumId to a number\n")
   }
   stateString := c.Param("state")
   state, err := strconv.Atoi(stateString)
   if err != nil {
-    return c.String(http.StatusBadRequest, fmt.Sprintf("Can't convert state '%s' to a number\n", stateString))
+    e.Logger.Errorf("Can't convert state '%s' to a number\n", stateString)
+    return c.String(http.StatusBadRequest, "Can't convert state to a number\n")
   }
   songs, err := loadSongs(db, albumId, state)
   if err != nil {
-    return c.String(http.StatusBadRequest, fmt.Sprintf("error loading songs: %s\n", err.Error()))
+    e.Logger.Errorf("error loading songs: %s\n", err.Error())
+    return c.String(http.StatusBadRequest, "Error loading songs\n")
   }
   return c.JSON(http.StatusOK, songs)
 }
 
-func updateSongStates(c echo.Context, db *sql.DB) error {
+func updateSongStates(e *echo.Echo, c echo.Context, db *sql.DB) error {
   updateModel := new(UpdateSongStatesModel)
   if err := c.Bind(updateModel); err != nil {
-    return c.String(http.StatusBadRequest, fmt.Sprintf("Error binding body: %s\n", err.Error()))
+    e.Logger.Errorf("Error binding body: %s\n", err.Error())
+    return c.String(http.StatusBadRequest, "Error binding body\n")
   }
   if err := loadSongStates(db, updateModel); err != nil {
-    return c.String(http.StatusInternalServerError, fmt.Sprintf("Error updating song states: %s\n", err.Error()))
+    e.Logger.Errorf("Error updating song states: %s\n", err.Error())
+    return c.String(http.StatusInternalServerError, "Error updating song states\n")
   }
   return c.String(http.StatusOK, "")
 }
