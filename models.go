@@ -14,6 +14,8 @@ type SongModel struct {
   Id int `json:"id"`
   TrackNum int `json:"trackNum"`
   Title string `json:"title"`
+  Album string `json:"album"`
+  Artist string `json:"artist"`
 }
 
 type UpdateSongStatesModel struct {
