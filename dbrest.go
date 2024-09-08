@@ -106,6 +106,39 @@ func loadSongs(db *sql.DB, albumId, state int) ([]SongModel, error) {
   return resp, nil
 }
 
+func loadAllSongs(db *sql.DB, state int) ([]SongModel, error) {
+  resp := make([]SongModel, 0)
+  var stmt *sql.Stmt
+  var err error
+  if state != 0 {
+    stmt, err = db.Prepare("select id, track_number, title from songs where state = $1 order by track_number")
+  } else {
+    stmt, err = db.Prepare("select id, track_number, title from songs order by track_number")
+  }
+  if err != nil {
+    return resp, err
+  }
+  defer stmt.Close()
+  var rows *sql.Rows
+  if state != 0 {
+    rows, err = stmt.Query(state)
+  } else {
+    rows, err = stmt.Query()
+  }
+  if err != nil {
+    return resp, err
+  }
+  for rows.Next() {
+    var song SongModel
+    err := rows.Scan(&song.Id, &song.TrackNum, &song.Title)
+    if err != nil {
+      return resp, err
+    }
+    resp = append(resp, song)
+  }
+  return resp, nil
+}
+
 func loadSongStates(db *sql.DB, req *UpdateSongStatesModel) error {
   for _, songId := range(req.SongIds) {
     _, err := db.Exec("update songs set state = $1 where id = $2", req.State, songId)
