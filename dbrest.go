@@ -114,7 +114,8 @@ func loadAllSongs(db *sql.DB, state int) ([]SongModel, error) {
     stmt, err = db.Prepare("select song.id, song.track_number, song.title, album.title, artist.name from songs song, albums album, artists artist where song.state = $1" +
       " and song.album = album.id and album.artist = artist.id order by artist.sort_name, album.sort_title, song.track_number")
   } else {
-    stmt, err = db.Prepare("select id, track_number, title from songs order by track_number")
+    stmt, err = db.Prepare("select song.id, song.track_number, song.title, album.title, artist.name from songs song, albums album, artists artist where" +
+      " song.album = album.id and album.artist = artist.id order by artist.sort_name, album.sort_title, song.track_number")
   }
   if err != nil {
     return resp, err
