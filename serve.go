@@ -43,6 +43,9 @@ func doServe(c *cli.Context) error {
   e.GET("/allsongs/:state", func(c echo.Context) error {
 		return getAllSongs(e, c, db)
 	})
+  e.GET("/allsongsbyartist/:artistId/:state", func(c echo.Context) error {
+		return getAllSongsByArtist(e, c, db)
+	})
   e.POST("/updatesongs", func(c echo.Context) error {
 		return updateSongStates(e, c, db)
 	})
@@ -116,6 +119,27 @@ func getAllSongs(e *echo.Echo, c echo.Context, db *sql.DB) error {
     return c.String(http.StatusBadRequest, "Can't convert state to a number\n")
   }
   songs, err := loadAllSongs(db, state)
+  if err != nil {
+    e.Logger.Errorf("error loading songs: %s\n", err.Error())
+    return c.String(http.StatusBadRequest, "Error loading songs\n")
+  }
+  return c.JSON(http.StatusOK, songs)
+}
+
+func getAllSongsByArtist(e *echo.Echo, c echo.Context, db *sql.DB) error {
+  artistString := c.Param("artistId")
+  artistId, err := strconv.Atoi(artistString)
+  if err != nil {
+    e.Logger.Errorf("Can't convert artistId '%s' to a number\n", artistString)
+    return c.String(http.StatusBadRequest, "Can't convert artistId to a number\n")
+  }
+  stateString := c.Param("state")
+  state, err := strconv.Atoi(stateString)
+  if err != nil {
+    e.Logger.Errorf("Can't convert state '%s' to a number\n", stateString)
+    return c.String(http.StatusBadRequest, "Can't convert state to a number\n")
+  }
+  songs, err := loadAllSongsByArtist(db, artistId, state)
   if err != nil {
     e.Logger.Errorf("error loading songs: %s\n", err.Error())
     return c.String(http.StatusBadRequest, "Error loading songs\n")

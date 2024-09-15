@@ -141,6 +141,41 @@ func loadAllSongs(db *sql.DB, state int) ([]SongModel, error) {
   return resp, nil
 }
 
+func loadAllSongsByArtist(db *sql.DB, artistId, state int) ([]SongModel, error) {
+  resp := make([]SongModel, 0)
+  var stmt *sql.Stmt
+  var err error
+  if state != 0 {
+    stmt, err = db.Prepare("select song.id, song.track_number, song.title, album.title, artist.name from songs song, albums album, artists artist where song.state = $1" +
+      " and artist.id = $2 and song.album = album.id and album.artist = artist.id order by artist.sort_name, album.sort_title, song.track_number")
+  } else {
+    stmt, err = db.Prepare("select song.id, song.track_number, song.title, album.title, artist.name from songs song, albums album, artists artist where" +
+      " artist.id = $1 and song.album = album.id and album.artist = artist.id order by artist.sort_name, album.sort_title, song.track_number")
+  }
+  if err != nil {
+    return resp, err
+  }
+  defer stmt.Close()
+  var rows *sql.Rows
+  if state != 0 {
+    rows, err = stmt.Query(state, artistId)
+  } else {
+    rows, err = stmt.Query(artistId)
+  }
+  if err != nil {
+    return resp, err
+  }
+  for rows.Next() {
+    var song SongModel
+    err := rows.Scan(&song.Id, &song.TrackNum, &song.Title, &song.Album, &song.Artist)
+    if err != nil {
+      return resp, err
+    }
+    resp = append(resp, song)
+  }
+  return resp, nil
+}
+
 func loadSongStates(db *sql.DB, req *UpdateSongStatesModel) error {
   for _, songId := range(req.SongIds) {
     _, err := db.Exec("update songs set state = $1 where id = $2", req.State, songId)
