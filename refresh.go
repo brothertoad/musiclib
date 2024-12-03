@@ -2,6 +2,7 @@ package main
 
 import (
   "fmt"
+  "time"
   "github.com/urfave/cli/v2"
   "github.com/brothertoad/tags"
 )
@@ -15,6 +16,7 @@ var refreshCommand = cli.Command {
 func doRefresh(c *cli.Context) error {
   db := getDbConnection()
   defer db.Close()
+  t0 := time.Now()
   diskSongMaps := loadSongMapSliceFromMusicDir()
   dbSongMaps := artistMapToSongMaps(readArtistMapFromDb(db))
   diskKeys := songMapSliceToSizeAndTimeMap(diskSongMaps)
@@ -25,6 +27,12 @@ func doRefresh(c *cli.Context) error {
   deleteSongsFromDb(db, deleted)
   addSongsToDb(db, added)
   deleteEmptyContainers(db)
+  t1 := time.Now()
+  elapsed := t1.Sub(t0) // elapsed is nanoseconds
+  seconds := (elapsed + 500000000) / 1000000000
+  min := seconds / 60
+  sec := seconds - (min * 60)
+  fmt.Printf("refresh took %d:%02d\n", min, sec)
   return nil
 }
 
