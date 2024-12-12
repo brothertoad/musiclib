@@ -21,6 +21,10 @@ func doRefresh(c *cli.Context) error {
   dbSongMaps := artistMapToSongMaps(readArtistMapFromDb(db))
   diskKeys := songMapSliceToSizeAndTimeMap(diskSongMaps)
   dbKeys := songMapSliceToSizeAndTimeMap(dbSongMaps)
+  numMoved := updateRelativePaths(dbKeys, diskKeys)
+  if numMoved > 0 {
+    fmt.Printf("%d songs moved\n", numMoved)
+  }
   added := findMissing(diskKeys, dbKeys)
   deleted := findMissing(dbKeys, diskKeys)
   fmt.Printf("%d songs added, %d songs deleted\n", len(added), len(deleted))
@@ -53,4 +57,21 @@ func findMissing(src, dest map[string]tags.TagMap) map[string]tags.TagMap {
     }
   }
   return list
+}
+
+func updateRelativePaths(stale, fresh map[string]tags.TagMap) int {
+    total := 0
+    for k, v := range fresh {
+      ov, found := stale[k]
+      if !found {
+        continue // ignore fresh songs that aren't in stale
+      }
+      freshPath := v[tags.RelativePathKey]
+      stalePath := ov[tags.RelativePathKey]
+      if freshPath != stalePath {
+        fmt.Printf("Relative path changed, was '%s', now '%s'\n", stalePath, freshPath)
+        total++
+      }
+    }
+    return total
 }
