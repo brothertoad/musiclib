@@ -1,9 +1,11 @@
 package main
 
 import (
+  "database/sql"
   "fmt"
   "time"
   "github.com/urfave/cli/v2"
+  "github.com/brothertoad/btu"
   "github.com/brothertoad/tags"
 )
 
@@ -21,7 +23,7 @@ func doRefresh(c *cli.Context) error {
   dbSongMaps := artistMapToSongMaps(readArtistMapFromDb(db))
   diskKeys := songMapSliceToSizeAndTimeMap(diskSongMaps)
   dbKeys := songMapSliceToSizeAndTimeMap(dbSongMaps)
-  numMoved := updateRelativePaths(dbKeys, diskKeys)
+  numMoved := updatePaths(db, dbKeys, diskKeys)
   if numMoved > 0 {
     fmt.Printf("%d songs moved\n", numMoved)
   }
@@ -59,7 +61,7 @@ func findMissing(src, dest map[string]tags.TagMap) map[string]tags.TagMap {
   return list
 }
 
-func updateRelativePaths(stale, fresh map[string]tags.TagMap) int {
+func updatePaths(db *sql.DB, stale, fresh map[string]tags.TagMap) int {
     total := 0
     for k, v := range fresh {
       ov, found := stale[k]
@@ -69,7 +71,14 @@ func updateRelativePaths(stale, fresh map[string]tags.TagMap) int {
       freshPath := v[tags.RelativePathKey]
       stalePath := ov[tags.RelativePathKey]
       if freshPath != stalePath {
-        fmt.Printf("Relative path changed, was '%s', now '%s'\n", stalePath, freshPath)
+        // Note that since the fresh map was read from disk, there are no ids.
+        id := btu.Atoi2(ov[tags.IdKey], "Can't convert '%s' to a song id", ov[tags.IdKey])
+        fmt.Printf("Song %d changed:\n", id)
+        fmt.Printf("    Relative path old: %s\n", ov[tags.RelativePathKey])
+        fmt.Printf("    Relative path new: %s\n", v[tags.RelativePathKey])
+        fmt.Printf("    Base path old: %s\n", ov[tags.BasePathKey])
+        fmt.Printf("    Base path new: %s\n", v[tags.BasePathKey])
+        updateSongPaths(db, id, v)
         total++
       }
     }

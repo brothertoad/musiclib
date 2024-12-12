@@ -199,6 +199,11 @@ func updateSongEncodedSource(db *sql.DB, song Song) {
   btu.CheckError(err)
 }
 
+func updateSongPaths(db *sql.DB, id int, songMap tags.TagMap) {
+  _, err := db.Exec("update songs set relative_path = $1, base_path = $2 where id = $3", songMap[tags.RelativePathKey], songMap[tags.BasePathKey], id)
+  btu.CheckError(err)
+}
+
 func deleteSongsFromDb(db *sql.DB, songMaps map[string]tags.TagMap) {
   deleteStmt, deleteErr := db.Prepare("delete from songs where id = $1")
   btu.CheckError(deleteErr)
