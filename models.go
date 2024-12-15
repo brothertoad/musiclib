@@ -13,6 +13,7 @@ type AlbumModel struct {
 type SongModel struct {
   Id int `json:"id"`
   TrackNum int `json:"trackNum"`
+  DiscNum int `json:"discNum"`
   Title string `json:"title"`
   Album string `json:"album"`
   Artist string `json:"artist"`

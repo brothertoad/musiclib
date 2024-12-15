@@ -78,9 +78,9 @@ func loadSongs(db *sql.DB, albumId, state int) ([]SongModel, error) {
   var stmt *sql.Stmt
   var err error
   if state != 0 {
-    stmt, err = db.Prepare("select id, track_number, title from songs where album = $1 and state = $2 order by track_number")
+    stmt, err = db.Prepare("select id, disc_number, track_number, title from songs where album = $1 and state = $2 order by track_number")
   } else {
-    stmt, err = db.Prepare("select id, track_number, title from songs where album = $1 order by track_number")
+    stmt, err = db.Prepare("select id, disc_number, track_number, title from songs where album = $1 order by track_number")
   }
   if err != nil {
     return resp, err
@@ -97,7 +97,7 @@ func loadSongs(db *sql.DB, albumId, state int) ([]SongModel, error) {
   }
   for rows.Next() {
     var song SongModel
-    err := rows.Scan(&song.Id, &song.TrackNum, &song.Title)
+    err := rows.Scan(&song.Id, &song.DiscNum, &song.TrackNum, &song.Title)
     if err != nil {
       return resp, err
     }
@@ -111,11 +111,11 @@ func loadAllSongs(db *sql.DB, state int) ([]SongModel, error) {
   var stmt *sql.Stmt
   var err error
   if state != 0 {
-    stmt, err = db.Prepare("select song.id, song.track_number, song.title, album.title, artist.name from songs song, albums album, artists artist where song.state = $1" +
-      " and song.album = album.id and album.artist = artist.id order by artist.sort_name, album.sort_title, song.track_number")
+    stmt, err = db.Prepare("select song.id, song.disc_number, song.track_number, song.title, album.title, artist.name from songs song, albums album, artists artist where song.state = $1" +
+      " and song.album = album.id and album.artist = artist.id order by artist.sort_name, album.sort_title, song.disc_number, song.track_number")
   } else {
-    stmt, err = db.Prepare("select song.id, song.track_number, song.title, album.title, artist.name from songs song, albums album, artists artist where" +
-      " song.album = album.id and album.artist = artist.id order by artist.sort_name, album.sort_title, song.track_number")
+    stmt, err = db.Prepare("select song.id, song.disc_number, song.track_number, song.title, album.title, artist.name from songs song, albums album, artists artist where" +
+      " song.album = album.id and album.artist = artist.id order by artist.sort_name, album.sort_title, song.disc_number, song.track_number")
   }
   if err != nil {
     return resp, err
@@ -132,7 +132,7 @@ func loadAllSongs(db *sql.DB, state int) ([]SongModel, error) {
   }
   for rows.Next() {
     var song SongModel
-    err := rows.Scan(&song.Id, &song.TrackNum, &song.Title, &song.Album, &song.Artist)
+    err := rows.Scan(&song.Id, &song.DiscNum, &song.TrackNum, &song.Title, &song.Album, &song.Artist)
     if err != nil {
       return resp, err
     }
@@ -146,11 +146,11 @@ func loadAllSongsByArtist(db *sql.DB, artistId, state int) ([]SongModel, error) 
   var stmt *sql.Stmt
   var err error
   if state != 0 {
-    stmt, err = db.Prepare("select song.id, song.track_number, song.title, album.title, artist.name from songs song, albums album, artists artist where song.state = $1" +
-      " and artist.id = $2 and song.album = album.id and album.artist = artist.id order by artist.sort_name, album.sort_title, song.track_number")
+    stmt, err = db.Prepare("select song.id, song.disc_number, song.track_number, song.title, album.title, artist.name from songs song, albums album, artists artist where song.state = $1" +
+      " and artist.id = $2 and song.album = album.id and album.artist = artist.id order by artist.sort_name, album.sort_title, song.disc_number, song.track_number")
   } else {
-    stmt, err = db.Prepare("select song.id, song.track_number, song.title, album.title, artist.name from songs song, albums album, artists artist where" +
-      " artist.id = $1 and song.album = album.id and album.artist = artist.id order by artist.sort_name, album.sort_title, song.track_number")
+    stmt, err = db.Prepare("select song.id, song.disc_number, song.track_number, song.title, album.title, artist.name from songs song, albums album, artists artist where" +
+      " artist.id = $1 and song.album = album.id and album.artist = artist.id order by artist.sort_name, album.sort_title, song.disc_number, song.track_number")
   }
   if err != nil {
     return resp, err
@@ -167,7 +167,7 @@ func loadAllSongsByArtist(db *sql.DB, artistId, state int) ([]SongModel, error) 
   }
   for rows.Next() {
     var song SongModel
-    err := rows.Scan(&song.Id, &song.TrackNum, &song.Title, &song.Album, &song.Artist)
+    err := rows.Scan(&song.Id, &song.DiscNum, &song.TrackNum, &song.Title, &song.Album, &song.Artist)
     if err != nil {
       return resp, err
     }
