@@ -73,11 +73,6 @@ func updatePaths(db *sql.DB, stale, fresh map[string]tags.TagMap) int {
       if freshPath != stalePath {
         // Note that since the fresh map was read from disk, there are no ids.
         id := btu.Atoi2(ov[tags.IdKey], "Can't convert '%s' to a song id", ov[tags.IdKey])
-        fmt.Printf("Song %d changed:\n", id)
-        fmt.Printf("    Relative path old: %s\n", ov[tags.RelativePathKey])
-        fmt.Printf("    Relative path new: %s\n", v[tags.RelativePathKey])
-        fmt.Printf("    Base path old: %s\n", ov[tags.BasePathKey])
-        fmt.Printf("    Base path new: %s\n", v[tags.BasePathKey])
         updateSongPaths(db, id, v)
         total++
       }
