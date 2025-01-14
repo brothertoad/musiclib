@@ -38,7 +38,7 @@ func doCreate(c *cli.Context) error {
   if len(c.String(loadFlag)) > 0 {
     songMaps = loadSongsFromYaml(c.String(loadFlag))
   } else {
-    songMaps = loadSongMapSliceFromMusicDir()
+    songMaps = loadSongMapSliceFromMusicDir(true)
   }
   sort.Sort(songMaps)
 

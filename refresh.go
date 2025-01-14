@@ -9,8 +9,13 @@ import (
   "github.com/brothertoad/tags"
 )
 
+var useMd5 = false
+
 var refreshCommand = cli.Command {
   Name: "refresh",
+	Flags: []cli.Flag {
+	  &cli.BoolFlag {Name: "md5", Aliases: []string{"m"}, Value: false, Destination: &useMd5},
+	},
   Usage: "refresh the database",
   Action: doRefresh,
 }
@@ -19,20 +24,53 @@ func doRefresh(c *cli.Context) error {
   db := getDbConnection()
   defer db.Close()
   t0 := time.Now()
-  diskSongMaps := loadSongMapSliceFromMusicDir()
+  if verbose {
+	  fmt.Printf("About to load songs from disk %s\n", time.Now().Format(time.TimeOnly))
+  }
+  diskSongMaps := loadSongMapSliceFromMusicDir(useMd5)
+  if verbose {
+	  fmt.Printf("About to load songs from database %s\n", time.Now().Format(time.TimeOnly))
+  }
   dbSongMaps := artistMapToSongMaps(readArtistMapFromDb(db))
+  if verbose {
+	  fmt.Printf("About to convert keys from disk songs %s\n", time.Now().Format(time.TimeOnly))
+  }
   diskKeys := songMapSliceToSizeAndTimeMap(diskSongMaps)
+  if verbose {
+	  fmt.Printf("About to convert keys from database songs %s\n", time.Now().Format(time.TimeOnly))
+  }
   dbKeys := songMapSliceToSizeAndTimeMap(dbSongMaps)
+  if verbose {
+	  fmt.Printf("About to calculate the number of songs that moved %s\n", time.Now().Format(time.TimeOnly))
+  }
   numMoved := updatePaths(db, dbKeys, diskKeys)
   if numMoved > 0 {
     fmt.Printf("%d songs moved\n", numMoved)
   }
+  if verbose {
+	  fmt.Printf("About to find added %s\n", time.Now().Format(time.TimeOnly))
+  }
   added := findMissing(diskKeys, dbKeys)
+  if verbose {
+	  fmt.Printf("About to find deleted %s\n", time.Now().Format(time.TimeOnly))
+  }
   deleted := findMissing(dbKeys, diskKeys)
   fmt.Printf("%d songs added, %d songs deleted\n", len(added), len(deleted))
+  if verbose {
+	  fmt.Printf("About to delete songs from database %s\n", time.Now().Format(time.TimeOnly))
+  }
   deleteSongsFromDb(db, deleted)
+  if verbose {
+	  fmt.Printf("About to add songs to database %s\n", time.Now().Format(time.TimeOnly))
+  }
   addSongsToDb(db, added)
+  if verbose {
+	  fmt.Printf("About to delete empty containers in database %s\n", time.Now().Format(time.TimeOnly))
+  }
   deleteEmptyContainers(db)
+  if verbose {
+	  fmt.Printf("Done deleting empty containers in database %s\n", time.Now().Format(time.TimeOnly))
+  }
   t1 := time.Now()
   elapsed := t1.Sub(t0) // elapsed is nanoseconds
   seconds := (elapsed + 500000000) / 1000000000

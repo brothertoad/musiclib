@@ -29,7 +29,6 @@ var config struct {
 }
 
 // Other global data.
-var verbose bool
 var musicDirLength int
 var hasher hash.Hash
 
@@ -49,7 +48,6 @@ func Init(c *cli.Context) error {
   }
   btu.DirMustExist(config.MusicDir)
   // Initialize the other global data.
-  verbose = c.Bool("verbose")
   musicDirLength = len(config.MusicDir)
   hasher = md5.New()
   return nil

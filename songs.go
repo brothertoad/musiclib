@@ -32,7 +32,7 @@ var requiredKeys = []string {
 //
 ////////////////////////////////////////////////////////////////////////
 
-func loadSongMapSliceFromMusicDir() tags.TagMapSlice {
+func loadSongMapSliceFromMusicDir(useMd5 bool) tags.TagMapSlice {
   songMaps := make(tags.TagMapSlice, 0, 5000)
   filepath.WalkDir(config.MusicDir, func(path string, de fs.DirEntry, err error) error {
     if de.IsDir() {
@@ -45,7 +45,11 @@ func loadSongMapSliceFromMusicDir() tags.TagMapSlice {
     setPaths(song, path)
     song[tags.FlagsKey] = ""
     addSortKeys(song)
-    addMd5Key(song)
+    if useMd5 {
+		addMd5Key(song)
+	} else {
+		song[tags.Md5Key] = ""
+	}
     info, err := de.Info()
     btu.CheckError2(err, "Couldn't get fileInfo for '%s'\n", path)
     song[tags.SizeAndTimeKey] = fmt.Sprintf("%d-%d", info.Size(), info.ModTime().Unix())

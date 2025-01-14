@@ -20,6 +20,8 @@ import (
 
 const verboseFlag = "verbose"
 
+var verbose = false
+
 func main() {
   app := &cli.App {
     Name: "musiclib",
@@ -27,7 +29,7 @@ func main() {
     Usage: "maintain musiclib database",
     Flags: []cli.Flag {
       &cli.StringFlag {Name: "config", Required: true, EnvVars: []string{"MUSICLIB_CONFIG"},},
-      &cli.BoolFlag {Name: verboseFlag, Aliases: []string{"v"}},
+      &cli.BoolFlag {Name: verboseFlag, Aliases: []string{"v"}, Value: false, Destination: &verbose},
       &cli.StringFlag {Name: "log-level"},
     },
     Commands: []*cli.Command {
