@@ -38,6 +38,11 @@ func loadSongMapSliceFromMusicDir(useMd5 bool) tags.TagMapSlice {
     if de.IsDir() {
       return nil
     }
+    // Skip if name begins with a period.
+    name := de.Name()
+    if len(name) == 0 || name[0] == '.' {
+      return nil
+    }
     song := tags.GetStandardTagsFromFile(path)
     if song == nil || len(song) == 0 {
       return nil
