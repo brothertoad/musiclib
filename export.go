@@ -38,20 +38,29 @@ func doExport(c *cli.Context) error {
   // we can print out the song list more cleanly.
   songInfoList := make([]songInfo, 0, 10000)
 
+  maxArtistWidth := 0
+  maxAlbumWidth := 0
+
   artists := slices.Collect(maps.Values(readArtistMapFromDb(db)))
   // fmt.Printf("%d artists are candidates for exporting\n", len(artists))
   sort.Slice(artists, func(i, j int) bool {
     return strings.ToUpper(artists[i].SortName) < strings.ToUpper(artists[j].SortName)
   })
   for _, artist := range(artists) {
-    // fmt.Printf("%s:\n", artist.Name)
+    // See if this is the longest artist so far.
+    if len(artist.Name) > maxArtistWidth {
+      maxArtistWidth = len(artist.Name)
+    }
     // Create a slice of albums, sorted by SortTitle.
     albums := slices.Collect(maps.Values(artist.Albums))
     sort.Slice(albums, func(i, j int) bool {
       return strings.ToUpper(albums[i].SortTitle) < strings.ToUpper(albums[j].SortTitle)
     })
     for _, album := range(albums) {
-      // fmt.Printf("%s   %s\n", artist.Name, album.Title)
+      // See if this is the longest album so far.
+      if len(album.Title) > maxAlbumWidth {
+        maxAlbumWidth = len(album.Title)
+      }
       // Create a slice of songs, sorted by DiscNum and TrackNum.
       songs := album.Songs
       sort.Slice(songs, func(i, j int) bool {
@@ -71,8 +80,9 @@ func doExport(c *cli.Context) error {
       }
     }
   }
+  format := fmt.Sprintf("%%-%ds   %%-%ds   %%d  %%d  %%s\n", maxArtistWidth, maxAlbumWidth)
   for _, info := range(songInfoList) {
-    fmt.Printf("%s   %s   %d  %d  %s\n", info.artist, info.album, info.disc, info.track, info.title)
+    fmt.Printf(format, info.artist, info.album, info.disc, info.track, info.title)
   }
   return nil
 }
