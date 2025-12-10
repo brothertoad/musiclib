@@ -35,6 +35,7 @@ func main() {
     Commands: []*cli.Command {
       &createCommand,
       &refreshCommand,
+      &exportCommand,
       &encodeCommand,
       &serveCommand,
     },

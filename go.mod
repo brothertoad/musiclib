@@ -1,6 +1,6 @@
 module github.com/brothertoad/musiclib
 
-go 1.17
+go 1.23
 
 require (
 	github.com/brothertoad/btu v0.0.0-20220627165445-9881c2d1fb54 // indirect
