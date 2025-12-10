@@ -12,6 +12,7 @@ import (
   _ "path/filepath"
   "slices"
   "sort"
+  "strings"
   "github.com/urfave/cli/v2"
   _ "github.com/brothertoad/btu"
 )
@@ -40,14 +41,14 @@ func doExport(c *cli.Context) error {
   artists := slices.Collect(maps.Values(readArtistMapFromDb(db)))
   // fmt.Printf("%d artists are candidates for exporting\n", len(artists))
   sort.Slice(artists, func(i, j int) bool {
-    return artists[i].SortName < artists[j].SortName
+    return strings.ToUpper(artists[i].SortName) < strings.ToUpper(artists[j].SortName)
   })
   for _, artist := range(artists) {
     // fmt.Printf("%s:\n", artist.Name)
     // Create a slice of albums, sorted by SortTitle.
     albums := slices.Collect(maps.Values(artist.Albums))
     sort.Slice(albums, func(i, j int) bool {
-      return albums[i].SortTitle < albums[j].SortTitle
+      return strings.ToUpper(albums[i].SortTitle) < strings.ToUpper(albums[j].SortTitle)
     })
     for _, album := range(albums) {
       // fmt.Printf("%s   %s\n", artist.Name, album.Title)
